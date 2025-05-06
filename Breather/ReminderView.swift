@@ -129,12 +129,13 @@ struct ReminderView: View {
         .padding(.horizontal, 40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
-            ZStack {
+            GeometryReader { geometry in
                 Image(settings.selectedWallpaper)
                     .resizable()
                     .scaledToFill()
+                    .frame(width: geometry.size.width + 50, height: geometry.size.height + 50)
                     .blur(radius: 10)
-                Color.black.opacity(0.2)
+                    .overlay(Color.black.opacity(0.2))
             }
             .edgesIgnoringSafeArea(.all)
         )
