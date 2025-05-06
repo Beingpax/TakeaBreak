@@ -6,8 +6,6 @@ class WindowManager: ObservableObject {
     private var panelHostingViews: [KeyablePanel: NSHostingView<ReminderView>] = [:]
     private var settings: BreatherSettings
     private var timerManager: TimerManager
-    
-    // For pre-break notification
     private var preBreakPanel: NSPanel?
     private var preBreakHostingView: NSHostingView<PreBreakNotificationView>?
 
@@ -19,7 +17,6 @@ class WindowManager: ObservableObject {
     func showPreBreakNotification() {
         hidePreBreakNotification()
         
-        // Create the notification panel
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 95),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -31,32 +28,27 @@ class WindowManager: ObservableObject {
             duration: settings.preBreakNotificationDuration,
             skipAction: { [weak self] in
                 self?.hidePreBreakNotification()
-                self?.timerManager.resetTimer() // Skip this break and restart full timer
-                print("DEBUG: Break skipped, timer reset to full interval: \(self?.timerManager.formattedTimeRemaining() ?? "unknown")")
+                self?.timerManager.resetTimer()
             },
             takeBreakNowAction: { [weak self] in
                 self?.hidePreBreakNotification()
                 self?.showReminderWindow()
-                print("DEBUG: Taking break now")
             },
             postponeAction: { [weak self] in
                 guard let self = self else { return }
                 self.hidePreBreakNotification()
-                self.timerManager.extendTimer(by: 5 * 60) // Add 5 minutes to current time
-                print("DEBUG: Added 5 minutes to timer, new time: \(self.timerManager.formattedTimeRemaining())")
+                self.timerManager.extendTimer(by: 5 * 60)
             }
         )
         
         let hostingView = NSHostingView(rootView: contentView)
         panel.contentView = hostingView
         
-        // Configure the panel
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = true
         panel.level = .floating
         
-        // Position in bottom right of main screen
         if let mainScreen = NSScreen.main {
             let screenFrame = mainScreen.visibleFrame
             let panelFrame = panel.frame
@@ -66,11 +58,9 @@ class WindowManager: ObservableObject {
             panel.setFrameOrigin(NSPoint(x: xPosition, y: yPosition))
         }
         
-        // Store references
         preBreakPanel = panel
         preBreakHostingView = hostingView
         
-        // Show the panel
         panel.orderFront(nil)
     }
     
@@ -81,7 +71,6 @@ class WindowManager: ObservableObject {
     }
     
     func showReminderWindow() {
-        // Only hide reminder window if there are existing panels
         if !reminderPanels.isEmpty {
             hideReminderWindow()
         }
@@ -101,20 +90,21 @@ class WindowManager: ObservableObject {
             reminderPanels.append(panel)
             
             let contentView = ReminderView(
-                autoDismissDuration: settings.autoDismissDuration
-            ) { [weak self] in
-                guard let self = self else { return }
-                if let index = self.reminderPanels.firstIndex(of: panel) {
-                    let panelToClose = self.reminderPanels.remove(at: index)
-                    self.panelHostingViews.removeValue(forKey: panelToClose)
-                    panelToClose.close()
-                    
-                    // If this was the last panel, resume the timer
-                    if self.reminderPanels.isEmpty {
-                        self.timerManager.resumeTimer()
+                autoDismissDuration: settings.autoDismissDuration,
+                dismissAction: { [weak self] in
+                    guard let self = self else { return }
+                    if let index = self.reminderPanels.firstIndex(of: panel) {
+                        let panelToClose = self.reminderPanels.remove(at: index)
+                        self.panelHostingViews.removeValue(forKey: panelToClose)
+                        panelToClose.close()
+                        
+                        if self.reminderPanels.isEmpty {
+                            self.timerManager.resumeTimer()
+                        }
                     }
-                }
-            }
+                },
+                settings: settings
+            )
             
             let hostingView = NSHostingView(rootView: contentView)
             panelHostingViews[panel] = hostingView
@@ -123,18 +113,27 @@ class WindowManager: ObservableObject {
             panel.backgroundColor = .clear
             panel.isOpaque = false
             panel.hasShadow = false
-            panel.level = .screenSaver
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenPrimary]
+            
+            // Use a custom level higher than any predefined level
+            // CGWindowLevelForKey(.screenSaver) is 1000, so we'll use something higher
+            panel.level = NSWindow.Level(rawValue: 2000)
+            
+            panel.hidesOnDeactivate = false
+            panel.ignoresMouseEvents = false // Allow mouse events for buttons in the reminder
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenPrimary, .stationary]
             
             panel.setFrame(screen.frame, display: true)
             panel.orderFront(nil)
             panel.makeKeyAndOrderFront(nil)
         }
-        
         NSApp.activate(ignoringOtherApps: true)
     }
     
     func hideReminderWindow() {
+        if reminderPanels.isEmpty {
+            return
+        }
+        
         let panelsToClose = reminderPanels
         reminderPanels.removeAll()
         
@@ -145,7 +144,6 @@ class WindowManager: ObservableObject {
         
         panelHostingViews.removeAll()
         
-        // Resume timer when all panels are closed
         if !panelsToClose.isEmpty {
             timerManager.resumeTimer()
         }

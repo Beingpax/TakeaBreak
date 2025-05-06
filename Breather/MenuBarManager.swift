@@ -20,7 +20,8 @@ class MenuBarManager: ObservableObject {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "lungs", accessibilityDescription: "Breather")
+            // Set the title with the formatted time
+            button.title = timerManager.formattedTimeRemainingInMinutes() 
             button.action = #selector(toggleMenu)
             button.target = self
         }
@@ -32,7 +33,10 @@ class MenuBarManager: ObservableObject {
     private func updateMenu() {
         let menu = NSMenu()
         
-        // Add time remaining item
+        // Update the status bar item's title first
+        statusItem?.button?.title = timerManager.formattedTimeRemainingInMinutes()
+
+        // Add time remaining item (can still be detailed here)
         let timeRemainingItem = NSMenuItem(title: "Next break: \(timerManager.formattedTimeRemaining())", action: nil, keyEquivalent: "")
         timeRemainingItem.isEnabled = false
         menu.addItem(timeRemainingItem)

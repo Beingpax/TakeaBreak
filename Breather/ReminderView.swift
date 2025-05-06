@@ -4,6 +4,7 @@ import Combine
 struct ReminderView: View {
     let autoDismissDuration: TimeInterval
     var dismissAction: () -> Void
+    @ObservedObject var settings: BreatherSettings
     
     @State private var currentTime = Date()
     @State private var opacity: Double = 0
@@ -18,9 +19,10 @@ struct ReminderView: View {
         return formatter
     }()
     
-    init(autoDismissDuration: TimeInterval, dismissAction: @escaping () -> Void) {
+    init(autoDismissDuration: TimeInterval, dismissAction: @escaping () -> Void, settings: BreatherSettings) {
         self.autoDismissDuration = autoDismissDuration
         self.dismissAction = dismissAction
+        self.settings = settings
         _remainingTime = State(initialValue: Int(ceil(autoDismissDuration)))
     }
     
@@ -36,113 +38,106 @@ struct ReminderView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Full-screen background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.1, green: 0.1, blue: 0.3),
-                    Color(red: 0.1, green: 0.1, blue: 0.15)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            // Semi-transparent overlay
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-            
-            // Content
-            VStack(spacing: 30) {
-                // Header
-                VStack(spacing: 10) {
-                    Text("Time to Take a Break")
-                        .font(.system(size: 42, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.white, .white.opacity(0.7)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+        VStack(spacing: 30) {
+            // Header
+            VStack(spacing: 10) {
+                Text("Time to Take a Break")
+                    .font(.system(size: 42, weight: .bold, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.white, .white.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-                        .multilineTextAlignment(.center)
-                    
-                    Text("Rest your eyes and stretch your body")
-                        .font(.title3)
+                    )
+                    .multilineTextAlignment(.center)
+                
+                Text("Rest your eyes and stretch your body")
+                    .font(.title3)
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            .padding(.top, 60)
+            
+            // Current time
+            Text(currentTime, formatter: dateFormatter)
+                .font(.system(size: 72, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
+                .padding(.vertical, 15)
+                .onReceive(clockTimer) { _ in
+                    currentTime = Date()
+                }
+            
+            // Break suggestions
+            VStack(spacing: 22) {
+                SuggestionRow(
+                    icon: "eye", 
+                    title: "Look away", 
+                    description: "Focus on something at least 20 feet away for 20 seconds"
+                )
+                
+                SuggestionRow(
+                    icon: "figure.walk", 
+                    title: "Stand up", 
+                    description: "Take a short walk or do some light stretching"
+                )
+                
+                SuggestionRow(
+                    icon: "cup.and.saucer", 
+                    title: "Hydrate", 
+                    description: "Drink some water to stay hydrated"
+                )
+            }
+            .padding(.vertical, 20)
+            .padding(.horizontal, 30)
+            .frame(maxWidth: 600)
+            .background(Color.white.opacity(0.08))
+            .cornerRadius(20)
+            
+            Spacer()
+            
+            // Countdown Timer with adjustment buttons
+            HStack(spacing: 24) {
+                // Decrease button
+                Button(action: { adjustTime(by: -Int(autoDismissDuration)) }) {
+                    Image(systemName: "minus.circle")
+                        .font(.system(size: 20))
                         .foregroundColor(.white.opacity(0.8))
                 }
-                .padding(.top, 60)
+                .buttonStyle(.plain)
                 
-                // Current time
-                Text(currentTime, formatter: dateFormatter)
-                    .font(.system(size: 72, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                    .padding(.vertical, 15)
-                    .onReceive(clockTimer) { _ in
-                        currentTime = Date()
-                    }
-                
-                // Break suggestions
-                VStack(spacing: 22) {
-                    SuggestionRow(
-                        icon: "eye", 
-                        title: "Look away", 
-                        description: "Focus on something at least 20 feet away for 20 seconds"
-                    )
+                // Timer display
+                VStack(spacing: 8) {
+                    Text("Resuming in")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.8))
                     
-                    SuggestionRow(
-                        icon: "figure.walk", 
-                        title: "Stand up", 
-                        description: "Take a short walk or do some light stretching"
-                    )
-                    
-                    SuggestionRow(
-                        icon: "cup.and.saucer", 
-                        title: "Hydrate", 
-                        description: "Drink some water to stay hydrated"
-                    )
+                    Text(formattedCountdown)
+                        .font(.system(size: 36, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
                 }
-                .padding(.vertical, 20)
-                .padding(.horizontal, 30)
-                .background(Color.white.opacity(0.08))
-                .cornerRadius(20)
                 
-                Spacer()
-                
-                // Countdown Timer with adjustment buttons
-                HStack(spacing: 24) {
-                    // Decrease button
-                    Button(action: { adjustTime(by: -Int(autoDismissDuration)) }) {
-                        Image(systemName: "minus.circle")
-                            .font(.system(size: 20))
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                    .buttonStyle(.plain)
-                    
-                    // Timer display
-                    VStack(spacing: 8) {
-                        Text("Resuming in")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white.opacity(0.8))
-                        
-                        Text(formattedCountdown)
-                            .font(.system(size: 36, weight: .bold, design: .monospaced))
-                            .foregroundColor(.white)
-                    }
-                    
-                    // Increase button
-                    Button(action: { adjustTime(by: Int(autoDismissDuration)) }) {
-                        Image(systemName: "plus.circle")
-                            .font(.system(size: 20))
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                    .buttonStyle(.plain)
+                // Increase button
+                Button(action: { adjustTime(by: Int(autoDismissDuration)) }) {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white.opacity(0.8))
                 }
-                .padding(.bottom, 60)
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 40)
-            .frame(maxWidth: 700)
+            .padding(.bottom, 60)
         }
+        .padding(.horizontal, 40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            ZStack {
+                Image(settings.selectedWallpaper)
+                    .resizable()
+                    .scaledToFill()
+                    .blur(radius: 10)
+                Color.black.opacity(0.2)
+            }
+            .edgesIgnoringSafeArea(.all)
+        )
         .opacity(opacity)
         .scaleEffect(scale)
         .onAppear {
@@ -241,5 +236,5 @@ struct DismissButtonStyle: ButtonStyle {
 }
 
 #Preview {
-    ReminderView(autoDismissDuration: 30, dismissAction: {})
+    ReminderView(autoDismissDuration: 30, dismissAction: {}, settings: BreatherSettings())
 }

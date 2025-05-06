@@ -7,7 +7,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Hold references to the core components
     private var timerManager: TimerManager?
     private var windowManager: WindowManager?
-    private var settings: BreatherSettings?
+    // BreatherSettings is now standalone, loaded from storage
+    private var settings = BreatherSettings()
     private var menuBarManager: MenuBarManager?
     private var menuRefreshTimer: Timer?
     private var cancellables = Set<AnyCancellable>() // To hold subscriptions
@@ -22,8 +23,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         
         // Now initialize the components
-        let timerManagerInstance = TimerManager()
-        let settingsInstance = BreatherSettings(timerManager: timerManagerInstance)
+        // Settings are loaded automatically by its init
+        let settingsInstance = self.settings
+        
+        // Initialize TimerManager *with* settings
+        let timerManagerInstance = TimerManager(settings: settingsInstance)
         
         // Pass both settings and timerManager to WindowManager
         let windowManagerInstance = WindowManager(
@@ -40,7 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Store instances
         self.timerManager = timerManagerInstance
         self.windowManager = windowManagerInstance
-        self.settings = settingsInstance
+        // self.settings is already set
         self.menuBarManager = menuBarManagerInstance
 
         // Setup timer manager to show reminder window
@@ -53,11 +57,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             windowManagerInstance?.showPreBreakNotification()
         }
         
-        // Configure timer interval based on initial settings
-        timerManagerInstance.setBreakInterval(settingsInstance.breakInterval)
-        timerManagerInstance.setPreBreakNotificationTime(settingsInstance.preBreakNotificationTime)
+        // REMOVE direct setting calls - TimerManager reads initial values
+        // and subscribes to changes itself.
+        // timerManagerInstance.setBreakInterval(settingsInstance.breakInterval)
+        // timerManagerInstance.setPreBreakNotificationTime(settingsInstance.preBreakNotificationTime)
         
-        // Start the timer if enabled in settings
+        // Only start the timer if the setting is enabled
         if settingsInstance.isEnabled {
             timerManagerInstance.startTimer()
         }
@@ -67,52 +72,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menuBarManagerInstance?.refreshMenu()
         }
         
-        // Observe settings changes (moved from BreatherSettings init)
-        // We do this here to ensure timerManagerInstance is fully initialized
-        settingsInstance.$breakInterval
-            .dropFirst() // Ignore initial value
-            .sink { [weak timerManagerInstance] interval in
-                UserDefaults.standard.set(interval, forKey: "breakInterval") // Use key directly or enum
-                timerManagerInstance?.setBreakInterval(interval)
-            }
-            .store(in: &cancellables)
-            
-        settingsInstance.$isEnabled
-            .dropFirst() // Ignore initial value
-            .sink { [weak timerManagerInstance] enabled in
-                UserDefaults.standard.set(enabled, forKey: "isEnabled") // Use key directly or enum
-                if enabled {
-                    timerManagerInstance?.startTimer()
-                } else {
-                    timerManagerInstance?.stopTimer()
-                }
-            }
-            .store(in: &cancellables)
-            
-        // Observer for autoDismissDuration
-        settingsInstance.$autoDismissDuration
-            .dropFirst()
-            .sink { duration in
-                UserDefaults.standard.set(duration, forKey: "autoDismissDuration")
-            }
-            .store(in: &cancellables)
-            
-        // Observer for preBreakNotificationTime
-        settingsInstance.$preBreakNotificationTime
-            .dropFirst()
-            .sink { [weak timerManagerInstance] time in
-                UserDefaults.standard.set(time, forKey: "preBreakNotificationTime")
-                timerManagerInstance?.setPreBreakNotificationTime(time)
-            }
-            .store(in: &cancellables)
-            
-        // Observer for preBreakNotificationDuration
-        settingsInstance.$preBreakNotificationDuration
-            .dropFirst()
-            .sink { duration in
-                UserDefaults.standard.set(duration, forKey: "preBreakNotificationDuration")
-            }
-            .store(in: &cancellables)
+        // LaunchAtLogin state is now handled by the LaunchAtLogin library
     }
     
     func applicationWillTerminate(_ notification: Notification) {
