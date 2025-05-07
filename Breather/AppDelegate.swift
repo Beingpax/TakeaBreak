@@ -47,20 +47,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // self.settings is already set
         self.menuBarManager = menuBarManagerInstance
 
-        // Setup timer manager to show reminder window
+        // Setup timer manager callbacks to WindowManager
         timerManagerInstance.onBreakTime = { [weak windowManagerInstance] in
             windowManagerInstance?.showReminderWindow()
         }
         
-        // Setup timer manager to show pre-break notification
         timerManagerInstance.onPreBreakNotification = { [weak windowManagerInstance] in
             windowManagerInstance?.showPreBreakNotification()
         }
         
-        // REMOVE direct setting calls - TimerManager reads initial values
-        // and subscribes to changes itself.
-        // timerManagerInstance.setBreakInterval(settingsInstance.breakInterval)
-        // timerManagerInstance.setPreBreakNotificationTime(settingsInstance.preBreakNotificationTime)
+        // NEW: Setup callback for TimerManager to tell WindowManager to hide all notifications
+        // This is used during system events (sleep/screensaver) or when Breather is disabled.
+        timerManagerInstance.onHideNotifications = { [weak windowManagerInstance] in
+            windowManagerInstance?.hideAllNotificationsForSystemEvent()
+        }
         
         // Only start the timer if the setting is enabled
         if settingsInstance.isEnabled {

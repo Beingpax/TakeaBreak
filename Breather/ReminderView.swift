@@ -5,12 +5,11 @@ struct ReminderView: View {
     let autoDismissDuration: TimeInterval
     var dismissAction: () -> Void
     @ObservedObject var settings: BreatherSettings
+    @ObservedObject var timerManager: TimerManager
     
     @State private var currentTime = Date()
     @State private var opacity: Double = 0
     @State private var scale: CGFloat = 0.95
-    @State private var remainingTime: Int
-    @State private var countdownTimer: Timer? = nil
 
     let clockTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     let dateFormatter: DateFormatter = {
@@ -19,22 +18,19 @@ struct ReminderView: View {
         return formatter
     }()
     
-    init(autoDismissDuration: TimeInterval, dismissAction: @escaping () -> Void, settings: BreatherSettings) {
+    init(autoDismissDuration: TimeInterval, dismissAction: @escaping () -> Void, settings: BreatherSettings, timerManager: TimerManager) {
         self.autoDismissDuration = autoDismissDuration
         self.dismissAction = dismissAction
         self.settings = settings
-        _remainingTime = State(initialValue: Int(ceil(autoDismissDuration)))
+        self.timerManager = timerManager
     }
     
     var formattedCountdown: String {
-        let minutes = remainingTime / 60
-        let seconds = remainingTime % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        return timerManager.formattedBreakCountdown()
     }
     
     func adjustTime(by seconds: Int) {
-        let newTime = max(0, remainingTime + seconds)
-        remainingTime = newTime
+        timerManager.adjustBreakTime(by: seconds)
     }
     
     var body: some View {
@@ -128,17 +124,28 @@ struct ReminderView: View {
         }
         .padding(.horizontal, 40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
+        .background {
             GeometryReader { geometry in
-                Image(settings.selectedWallpaper)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width + 50, height: geometry.size.height + 50)
-                    .blur(radius: 10)
-                    .overlay(Color.black.opacity(0.2))
+                ZStack {
+                    Image(settings.selectedWallpaper)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(
+                            width: geometry.size.width + 20,  // Add extra width to ensure coverage
+                            height: geometry.size.height + 20 // Add extra height to ensure coverage
+                        )
+                        .position(
+                            x: geometry.size.width/2,
+                            y: geometry.size.height/2
+                        )
+                        .blur(radius: 10)
+                        .clipped()
+
+                    Color.black.opacity(0.2)
+                }
             }
-            .edgesIgnoringSafeArea(.all)
-        )
+        }
+        .ignoresSafeArea()
         .opacity(opacity)
         .scaleEffect(scale)
         .onAppear {
@@ -146,33 +153,15 @@ struct ReminderView: View {
                 opacity = 1
                 scale = 1
             }
-            startTimers()
         }
-        .onDisappear {
-            stopCountdownTimer()
-        }
-    }
-    
-    private func startTimers() {
-        if countdownTimer == nil {
-            remainingTime = Int(ceil(autoDismissDuration))
-            countdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                if remainingTime > 0 {
-                    remainingTime -= 1
-                } else {
-                    autoDismiss()
-                }
+        .onReceive(timerManager.$remainingBreakTime) { time in
+            if time <= 0 {
+                autoDismiss()
             }
         }
     }
 
-    private func stopCountdownTimer() {
-        countdownTimer?.invalidate()
-        countdownTimer = nil
-    }
-
     private func autoDismiss() {
-        stopCountdownTimer()
         withAnimation(.easeIn(duration: 0.3)) {
             opacity = 0
             scale = 0.9
@@ -234,8 +223,4 @@ struct DismissButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
     }
-}
-
-#Preview {
-    ReminderView(autoDismissDuration: 30, dismissAction: {}, settings: BreatherSettings())
 }

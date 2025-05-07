@@ -27,17 +27,17 @@ class WindowManager: ObservableObject {
         let contentView = PreBreakNotificationView(
             duration: settings.preBreakNotificationDuration,
             skipAction: { [weak self] in
-                self?.hidePreBreakNotification()
                 self?.timerManager.resetTimer()
+                self?.hidePreBreakNotification(isUserAction: true)
             },
             takeBreakNowAction: { [weak self] in
-                self?.hidePreBreakNotification()
+                self?.hidePreBreakNotification(isUserAction: true)
                 self?.showReminderWindow()
             },
             postponeAction: { [weak self] in
                 guard let self = self else { return }
-                self.hidePreBreakNotification()
                 self.timerManager.extendTimer(by: 5 * 60)
+                self.hidePreBreakNotification(isUserAction: true)
             }
         )
         
@@ -49,14 +49,13 @@ class WindowManager: ObservableObject {
         panel.hasShadow = true
         panel.level = .floating
         
-        if let mainScreen = NSScreen.main {
-            let screenFrame = mainScreen.visibleFrame
-            let panelFrame = panel.frame
-            let xPosition = screenFrame.maxX - panelFrame.width - 20
-            let yPosition = screenFrame.minY + 20
-            
-            panel.setFrameOrigin(NSPoint(x: xPosition, y: yPosition))
-        }
+        let activeScreen = getActiveScreen()
+        let screenFrame = activeScreen.visibleFrame
+        let panelFrame = panel.frame
+        let xPosition = screenFrame.maxX - panelFrame.width - 20
+        let yPosition = screenFrame.minY + 20
+        
+        panel.setFrameOrigin(NSPoint(x: xPosition, y: yPosition))
         
         preBreakPanel = panel
         preBreakHostingView = hostingView
@@ -64,7 +63,7 @@ class WindowManager: ObservableObject {
         panel.orderFront(nil)
     }
     
-    func hidePreBreakNotification() {
+    func hidePreBreakNotification(isUserAction: Bool = false) {
         preBreakPanel?.close()
         preBreakPanel = nil
         preBreakHostingView = nil
@@ -72,9 +71,11 @@ class WindowManager: ObservableObject {
     
     func showReminderWindow() {
         if !reminderPanels.isEmpty {
-            hideReminderWindow()
+            hideReminderWindow(isSystemEventOrDisabled: true)
         }
         hidePreBreakNotification()
+        
+        timerManager.startBreakCountdown(duration: settings.autoDismissDuration)
         
         let screens = NSScreen.screens
         
@@ -92,18 +93,10 @@ class WindowManager: ObservableObject {
             let contentView = ReminderView(
                 autoDismissDuration: settings.autoDismissDuration,
                 dismissAction: { [weak self] in
-                    guard let self = self else { return }
-                    if let index = self.reminderPanels.firstIndex(of: panel) {
-                        let panelToClose = self.reminderPanels.remove(at: index)
-                        self.panelHostingViews.removeValue(forKey: panelToClose)
-                        panelToClose.close()
-                        
-                        if self.reminderPanels.isEmpty {
-                            self.timerManager.resumeTimer()
-                        }
-                    }
+                    self?.hideReminderWindow()
                 },
-                settings: settings
+                settings: settings,
+                timerManager: timerManager
             )
             
             let hostingView = NSHostingView(rootView: contentView)
@@ -114,12 +107,10 @@ class WindowManager: ObservableObject {
             panel.isOpaque = false
             panel.hasShadow = false
             
-            // Use a custom level higher than any predefined level
-            // CGWindowLevelForKey(.screenSaver) is 1000, so we'll use something higher
-            panel.level = NSWindow.Level(rawValue: 2000)
+            panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)))
             
             panel.hidesOnDeactivate = false
-            panel.ignoresMouseEvents = false // Allow mouse events for buttons in the reminder
+            panel.ignoresMouseEvents = false
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenPrimary, .stationary]
             
             panel.setFrame(screen.frame, display: true)
@@ -129,8 +120,11 @@ class WindowManager: ObservableObject {
         NSApp.activate(ignoringOtherApps: true)
     }
     
-    func hideReminderWindow() {
-        if reminderPanels.isEmpty {
+    func hideReminderWindow(isSystemEventOrDisabled: Bool = false) {
+        if reminderPanels.isEmpty && !isSystemEventOrDisabled {
+            if isSystemEventOrDisabled {
+                timerManager.stopBreakCountdown()
+            }
             return
         }
         
@@ -141,16 +135,36 @@ class WindowManager: ObservableObject {
             panelHostingViews.removeValue(forKey: panel)
             panel.close()
         }
-        
         panelHostingViews.removeAll()
         
-        if !panelsToClose.isEmpty {
+        if !isSystemEventOrDisabled && settings.isEnabled {
+            timerManager.stopBreakCountdown()
             timerManager.resumeTimer()
+        } else {
+            timerManager.stopBreakCountdown()
         }
     }
     
-    deinit {
-        hideReminderWindow()
+    func hideAllNotificationsForSystemEvent() {
         hidePreBreakNotification()
+        hideReminderWindow(isSystemEventOrDisabled: true)
+    }
+    
+    deinit {
+        hideAllNotificationsForSystemEvent()
+    }
+    
+    private func getActiveScreen() -> NSScreen {
+        let mouseLocation = NSEvent.mouseLocation
+        
+        if let screenWithMouse = NSScreen.screens.first(where: { NSMouseInRect(mouseLocation, $0.frame, false) }) {
+            return screenWithMouse
+        }
+        
+        if let keyWindow = NSApp.keyWindow, let windowScreen = keyWindow.screen {
+            return windowScreen
+        }
+        
+        return NSScreen.main ?? NSScreen.screens.first!
     }
 } 

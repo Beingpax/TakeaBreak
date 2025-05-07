@@ -75,6 +75,8 @@ class MenuBarManager: ObservableObject {
     
     @objc private func toggleBreaks() {
         settings.isEnabled.toggle()
+        // Force menu update immediately after toggle
+        updateMenu()
     }
     
     @objc private func openSettings() {
