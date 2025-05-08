@@ -5,6 +5,6 @@ import AppKit
 class KeyablePanel: NSPanel {
     // Override canBecomeKey to allow the panel to receive keyboard events
     override var canBecomeKey: Bool {
-        return true // Allow this panel to become key
+        return true
     }
 } 

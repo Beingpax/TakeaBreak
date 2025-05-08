@@ -53,6 +53,22 @@ class MenuBarManager: ObservableObject {
         settingsItem.target = self
         menu.addItem(settingsItem)
         
+        #if DEBUG
+        menu.addItem(NSMenuItem.separator())
+        
+        // Debug section
+        let debugMenu = NSMenu()
+        let debugItem = NSMenuItem(title: "Debug", action: nil, keyEquivalent: "")
+        debugItem.submenu = debugMenu
+        
+        // Add trigger break item
+        let triggerBreakItem = NSMenuItem(title: "Trigger Break Now", action: #selector(debugTriggerBreak), keyEquivalent: "")
+        triggerBreakItem.target = self
+        debugMenu.addItem(triggerBreakItem)
+        
+        menu.addItem(debugItem)
+        #endif
+        
         menu.addItem(NSMenuItem.separator())
         
         // Add quit option
@@ -120,6 +136,17 @@ class MenuBarManager: ObservableObject {
         settingsWindowDelegate = nil
         NSApp.terminate(nil)
     }
+    
+    #if DEBUG
+    @objc private func debugTriggerBreak() {
+        // Force stop any existing timers
+        timerManager.stopTimer()
+        timerManager.stopBreakCountdown()
+        
+        // Trigger the break reminder directly
+        timerManager.onBreakTime?()
+    }
+    #endif
     
     deinit {
         settingsWindow?.close()

@@ -1,6 +1,5 @@
 import Foundation
 import AppKit
-import os.log
 
 // Define delegate methods for system event notifications
 protocol SystemEventsDelegate: AnyObject {
@@ -20,13 +19,9 @@ class SystemEventsManager {
     private var isScreenSaverActive = false
     private var isDisplaySleeping = false
     
-    // Logger for debugging screen saver issues
-    private let logger = Logger(subsystem: "com.yourapp.breather", category: "timerbreak")
-    
     // Initialize and register for system notifications
     init() {
         setupNotifications()
-        logger.notice("SystemEventsManager initialized")
     }
     
     private func setupNotifications() {
@@ -50,8 +45,6 @@ class SystemEventsManager {
                           name: NSNotification.Name("com.apple.screenIsLocked"), object: nil)
         distNC.addObserver(self, selector: #selector(handleDisplayWake),
                           name: NSNotification.Name("com.apple.screenIsUnlocked"), object: nil)
-        
-        logger.notice("Registered for screen saver notifications: didstart, didstop")
     }
     
     // Handle system sleep notification
@@ -66,20 +59,16 @@ class SystemEventsManager {
     
     // Handle screen saver start notification
     @objc private func handleScreenSaverDidStart() {
-        logger.notice("Screen saver START notification received")
         if !isScreenSaverActive {
             isScreenSaverActive = true
-            logger.notice("Screen saver started - pausing timer")
             delegate?.screenSaverDidStart()
         }
     }
     
     // Handle screen saver stop notification
     @objc private func handleScreenSaverDidStop() {
-        logger.notice("Screen saver STOP notification received")
         if isScreenSaverActive {
             isScreenSaverActive = false
-            logger.notice("Screen saver stopped - resuming timer")
             delegate?.screenSaverDidStop()
         }
     }

@@ -22,29 +22,29 @@ enum SettingsTabTag {
 public struct SettingsView: View {
     @ObservedObject var settings: BreatherSettings
     @State private var selectedTab: SettingsTabTag = .customization
-    
+
     private var minutesFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.minimum = 0.5
-        formatter.maximum = 120
+        formatter.minimum = 20
+        formatter.maximum = 60
         formatter.maximumFractionDigits = 1
         return formatter
     }()
-    
+
     private var secondsFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.minimum = 5
-        formatter.maximum = 300
+        formatter.maximum = 180
         formatter.maximumFractionDigits = 0
         return formatter
     }()
-    
+
     public init(settings: BreatherSettings) {
         self.settings = settings
     }
-    
+
     public var body: some View {
         NavigationView {
             List {
@@ -206,44 +206,43 @@ struct CustomizationView: View {
     
     var body: some View {
         Form {
-            Section {
-                VStack(alignment: .leading, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Break Portal Style")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Choose how your break reminder appears")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 20) {
-                                ForEach(availableWallpapers) { option in
-                                    WallpaperPreviewCard(
-                                        option: option,
-                                        isSelected: settings.selectedWallpaper == option.id,
-                                        onTap: {
-                                            withAnimation(.spring()) {
-                                                settings.selectedWallpaper = option.id
-                                            }
-                                        }
-                                    )
+            // Main title area for the "Customization" screen
+            DetailedSectionHeader(
+                title: "Customization",
+                subtitle: "Personalize your break experience",
+                systemName: "paintbrush.fill",
+                themeColor: .purple
+            )
+            .listRowInsets(EdgeInsets(top: 0, leading: -10, bottom: 10, trailing: 0))
+
+            // Section 1: Reminder Background
+            Section(
+                header: Text("Reminder Background")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .textCase(nil)
+            ) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 20) {
+                        ForEach(availableWallpapers) { option in
+                            WallpaperPreviewCard(
+                                option: option,
+                                isSelected: settings.selectedWallpaper == option.id,
+                                onTap: {
+                                    withAnimation(.spring()) {
+                                        settings.selectedWallpaper = option.id
+                                    }
                                 }
-                            }
-                            .padding(.horizontal)
-                            .padding(.bottom, 10)
+                            )
                         }
-                        .frame(height: 170)
                     }
+                    .padding(.horizontal)
                 }
-                .padding()
-            } header: {
-                DetailedSectionHeader(
-                    title: "Customization",
-                    subtitle: "Personalize your break experience",
-                    systemName: "paintbrush.fill",
-                    themeColor: .purple
-                )
+                .frame(height: 170)
             }
+            
+            // Section 2: Motivational Quotes - Now using MotivationalQuotesSectionView
+            MotivationalQuotesSectionView(settings: settings)
         }
         .formStyle(.grouped)
     }
@@ -260,22 +259,20 @@ private struct TimingSettingsContent: View {
                 EnhancedNumericSetting(
                     label: "Work Interval",
                     description: "Time between breaks",
-                    helperText: "Recommended: 20-30 minutes for optimal productivity",
                     value: $settings.breakIntervalMinutes,
                     formatter: minutesFormatter,
                     unit: "min",
-                    range: 0.5...120,
-                    step: 1.0
+                    range: 0.5...60,
+                    step: 5.0
                 )
                 EnhancedNumericSetting(
                     label: "Break Duration",
                     description: "Length of each break",
-                    helperText: "Recommended: 20 seconds for quick eye rest",
                     value: $settings.autoDismissDuration,
                     formatter: secondsFormatter,
                     unit: "sec",
-                    range: 5...300,
-                    step: 5
+                    range: 20...180,
+                    step: 10
                 )
             } header: {
                 DetailedSectionHeader(
@@ -296,37 +293,38 @@ private struct NotificationSettingsContent: View {
     let secondsFormatter: NumberFormatter
     
     var body: some View {
-        Form {
-            Section {
+            Form {
+                Section {
                 EnhancedNumericSetting(
                     label: "Advance Notice",
                     description: "Get notified before break starts",
-                    helperText: "Set how much notice you need before breaks",
-                    value: $settings.preBreakNotificationMinutes,
-                    formatter: minutesFormatter,
-                    unit: "min",
-                    range: 0.5...10,
-                    step: 0.5
+                    value: Binding(
+                        get: { Double(settings.preBreakNotificationMinutes * 60) },
+                        set: { settings.preBreakNotificationMinutes = $0 / 60 }
+                    ),
+                    formatter: secondsFormatter,
+                    unit: "sec",
+                    range: 10...60,
+                    step: 5
                 )
                 EnhancedNumericSetting(
                     label: "Notice Duration",
                     description: "How long notification appears",
-                    helperText: "Time to see and respond to the notification",
                     value: $settings.preBreakNotificationDuration,
                     formatter: secondsFormatter,
                     unit: "sec",
-                    range: 5...60,
+                    range: 5...30,
                     step: 5
                 )
-            } header: {
+                } header: {
                 DetailedSectionHeader(
                     title: "Notifications",
                     subtitle: "Configure break reminders and alerts",
                     systemName: "bell.badge.fill",
                     themeColor: .orange
                 )
+                }
             }
-        }
         .formStyle(.grouped)
     }
 }
@@ -335,7 +333,6 @@ private struct NotificationSettingsContent: View {
 struct EnhancedNumericSetting: View {
     let label: String
     let description: String
-    let helperText: String
     @Binding var value: Double
     let formatter: NumberFormatter
     let unit: String
@@ -358,7 +355,7 @@ struct EnhancedNumericSetting: View {
                     Text(unit)
                         .frame(width: 30, alignment: .leading)
                         .foregroundColor(.secondary)
-                }
+    }
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(label)
@@ -368,12 +365,6 @@ struct EnhancedNumericSetting: View {
                         .foregroundColor(.secondary)
                 }
             }
-            
-            Text(helperText)
-                .font(.system(size: 11))
-                .foregroundColor(.secondary)
-                .padding(.leading, 8)
-                .padding(.top, -4)
         }
         .padding(.vertical, 4)
     }
@@ -400,7 +391,7 @@ struct WallpaperPreviewCard: View {
     let option: WallpaperOption
     let isSelected: Bool
     let onTap: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 10) {
             Image(option.previewImageName)
@@ -435,19 +426,19 @@ private struct NumericSetting: View {
     let unit: String
     let range: ClosedRange<Double>
     let step: Double
-    
+
     var body: some View {
         LabeledContent {
-            HStack(spacing: 5) {
+             HStack(spacing: 5) {
                 TextField("Value", value: $value, formatter: formatter)
-                    .multilineTextAlignment(.trailing)
-                    .frame(minWidth: 45, maxWidth: 65)
-                    .labelsHidden()
-                    .textFieldStyle(.roundedBorder)
-                
+                     .multilineTextAlignment(.trailing)
+                     .frame(minWidth: 45, maxWidth: 65)
+                     .labelsHidden()
+                     .textFieldStyle(.roundedBorder)
+
                 Stepper("Value Stepper", value: $value, in: range, step: step)
                     .labelsHidden()
-                
+
                 Text(unit)
                     .frame(width: 30, alignment: .leading)
                     .foregroundColor(.secondary)
@@ -476,4 +467,3 @@ struct SettingsView_Previews: PreviewProvider {
             .preferredColorScheme(.light)
     }
 }
-

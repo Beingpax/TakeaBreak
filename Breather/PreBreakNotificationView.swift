@@ -21,68 +21,113 @@ struct PreBreakNotificationView: View {
         _remainingTime = State(initialValue: Int(ceil(duration)))
     }
     
-    var formattedCountdown: String {
-        let minutes = remainingTime / 60
-        let seconds = remainingTime % 60
-        return remainingTime >= 60 ? String(format: "%d:%02d", minutes, seconds) : String(format: "%d sec", seconds)
+    private var progress: Double {
+        1 - (Double(remainingTime) / Double(duration))
     }
     
     var body: some View {
-        HStack(alignment: .center, spacing: 18) {
-            // Icon with subtle background
-            Image(systemName: "sparkles") // Changed icon
-                .font(.system(size: 28, weight: .light))
-                .foregroundStyle(
-                    LinearGradient(
-                        gradient: Gradient(colors: [Color.blue.opacity(0.7), Color.purple.opacity(0.7)]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 50, height: 50)
-                .background(Color.primary.opacity(0.05))
-                .clipShape(Circle())
-
-            // Content: Text and Buttons
-            VStack(alignment: .leading, spacing: 10) { // Increased spacing
-                // Text
-                VStack(alignment: .leading, spacing: 3) {
-                     Text("Break Time Soon - \(formattedCountdown)") // Updated text
-                        .font(.system(size: 15, weight: .medium)) // Slightly smaller
-                        .foregroundColor(.primary)
-                    Text("A moment to refresh is near.") // Updated text
-                         .font(.system(size: 13))
-                         .foregroundColor(.secondary)
-                }
-
-                // Buttons
-                HStack(spacing: 10) { // Increased spacing
-                    Button("Start Break", action: takeBreakNowAction)
-                        .buttonStyle(SubtleButtonStyle(isProminent: true))
-
-                    Button("Snooze 5 min", action: postponeAction) // Updated text
-                        .buttonStyle(SubtleButtonStyle())
+        VStack(spacing: 20) {
+            // Header with icon and text
+            HStack(spacing: 16) {
+                // Left side with icon and message
+                HStack(spacing: 16) {
+                    // Icon Circle
+                    Circle()
+                        .fill(Color.black.opacity(0.05))
+                        .frame(width: 42, height: 42)
+                        .overlay(
+                            Image(systemName: "bell.badge.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(Color.black)
+                        )
                     
-                    Button("Skip", action: skipAction)
-                        .buttonStyle(SubtleButtonStyle())
+                    // Encouraging message
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Time to Recharge")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.black)
                         
-                    Spacer() // Push buttons left
+                        Text("Take a moment to refresh")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
                 }
+                
+                Spacer()
+                
+                // New Circular Timer Design
+                ZStack {
+                    // Background circle
+                    Circle()
+                        .stroke(Color.black.opacity(0.05), lineWidth: 3)
+                        .frame(width: 52, height: 52)
+                    
+                    // Progress circle
+                    Circle()
+                        .trim(from: 0, to: progress)
+                        .stroke(Color.black, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .frame(width: 52, height: 52)
+                        .rotationEffect(.degrees(-90))
+                    
+                    // Time display
+                    VStack(spacing: -2) {
+                        Text("\(remainingTime)")
+                            .font(.system(size: 16, weight: .medium))
+                            .monospacedDigit()
+                        Text(remainingTime >= 60 ? "min" : "sec")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .frame(width: 52, height: 52)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Buttons
+            HStack(spacing: 10) {
+                Button(action: postponeAction) {
+                    ButtonContent(
+                        iconName: "alarm.fill",
+                        text: "Snooze",
+                        type: .secondary
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Button(action: skipAction) {
+                    ButtonContent(
+                        iconName: "forward.fill",
+                        text: "Skip",
+                        type: .secondary
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Button(action: takeBreakNowAction) {
+                    ButtonContent(
+                        iconName: "cup.and.saucer.fill",
+                        text: "Take Break",
+                        type: .primary
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .frame(width: 420, height: 95) // Adjusted size slightly
-        .background(.thinMaterial) // Frosted glass effect
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 5)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .frame(width: 420, height: 140)
+        .background(Color(white: 0.96))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 5)
         .opacity(opacity)
         .scaleEffect(scale)
         .onAppear {
-            NSSound.beep() // Play system notification sound
+            NSSound.beep()
             
-            withAnimation(.easeOut(duration: 0.35)) { // Slightly slower animation
+            withAnimation(.easeOut(duration: 0.35)) {
                 opacity = 1
                 scale = 1
             }
@@ -98,7 +143,6 @@ struct PreBreakNotificationView: View {
         stopTimer()
         
         if remainingTime <= 0 {
-             // Don't automatically take break - just stop the timer
              stopTimer()
              return
         }
@@ -121,35 +165,47 @@ struct PreBreakNotificationView: View {
     }
 }
 
-// Subtle button style (no changes needed here for now)
-struct SubtleButtonStyle: ButtonStyle {
-    var isProminent: Bool = false
+// Button content view
+struct ButtonContent: View {
+    let iconName: String
+    let text: String
+    let type: ButtonType
     
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 13, weight: .medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7) // Slightly more vertical padding
-            .background(
-                isProminent
-                    ? Color.primary.opacity(configuration.isPressed ? 0.25 : 0.15)
-                    : Color.primary.opacity(configuration.isPressed ? 0.15 : 0.08)
-            )
-            .foregroundColor(.primary)
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: iconName)
+                .font(.system(size: 12, weight: .medium))
+            
+            Text(text)
+                .font(.system(size: 13, weight: .medium))
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .foregroundColor(type == .primary ? .white : .black)
+        .background(
+            Capsule()
+                .fill(type == .primary ? Color.black : Color.white)
+        )
+        .overlay(
+            Capsule()
+                .strokeBorder(Color.black.opacity(type == .primary ? 0 : 0.15), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(type == .primary ? 0.2 : 0.05), radius: 2, x: 0, y: 1)
     }
 }
 
+// Button style types
+enum ButtonType {
+    case primary, secondary, tertiary
+}
 
 #Preview {
     PreBreakNotificationView(
         duration: 56,
-        skipAction: { print("Skip") },
-        takeBreakNowAction: { print("Take Now") },
-        postponeAction: { print("Postpone") }
+        skipAction: { },
+        takeBreakNowAction: { },
+        postponeAction: { }
     )
-    .padding(50) // Add padding to see shadow in preview
+    .padding(50)
     .frame(width: 520, height: 200)
-} 
+}

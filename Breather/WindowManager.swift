@@ -18,7 +18,7 @@ class WindowManager: ObservableObject {
         hidePreBreakNotification()
         
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 95),
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 140),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -77,6 +77,11 @@ class WindowManager: ObservableObject {
         
         timerManager.startBreakCountdown(duration: settings.autoDismissDuration)
         
+        // Select a single motivational quote for all screens
+        let selectedQuote = !settings.motivationalQuotes.isEmpty 
+            ? settings.motivationalQuotes.randomElement()! 
+            : "Enjoy your break!"
+        
         let screens = NSScreen.screens
         
         for screen in screens {
@@ -96,7 +101,8 @@ class WindowManager: ObservableObject {
                     self?.hideReminderWindow()
                 },
                 settings: settings,
-                timerManager: timerManager
+                timerManager: timerManager,
+                motivationalQuote: selectedQuote  // Pass the selected quote
             )
             
             let hostingView = NSHostingView(rootView: contentView)
@@ -106,9 +112,7 @@ class WindowManager: ObservableObject {
             panel.backgroundColor = .clear
             panel.isOpaque = false
             panel.hasShadow = false
-            
             panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)))
-            
             panel.hidesOnDeactivate = false
             panel.ignoresMouseEvents = false
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenPrimary, .stationary]
@@ -147,7 +151,9 @@ class WindowManager: ObservableObject {
     
     func hideAllNotificationsForSystemEvent() {
         hidePreBreakNotification()
-        hideReminderWindow(isSystemEventOrDisabled: true)
+        if !timerManager.isBreakActive {
+            hideReminderWindow(isSystemEventOrDisabled: true)
+        }
     }
     
     deinit {
