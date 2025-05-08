@@ -11,7 +11,8 @@ struct PreBreakNotificationView: View {
     @State private var remainingTime: Int
     @State private var countdownTimer: Timer? = nil
     @State private var opacity: Double = 0
-    @State private var scale: CGFloat = 0.95
+    @State private var slideOffset: CGFloat = 500  // Start off-screen
+    @State private var isExiting: Bool = false
     
     init(duration: TimeInterval, skipAction: @escaping () -> Void, takeBreakNowAction: @escaping () -> Void, postponeAction: @escaping () -> Void) {
         self.duration = duration
@@ -21,8 +22,10 @@ struct PreBreakNotificationView: View {
         _remainingTime = State(initialValue: Int(ceil(duration)))
     }
     
-    private var progress: Double {
-        1 - (Double(remainingTime) / Double(duration))
+    private var formattedTime: String {
+        let minutes = remainingTime / 60
+        let seconds = remainingTime % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
     
     var body: some View {
@@ -55,61 +58,52 @@ struct PreBreakNotificationView: View {
                 
                 Spacer()
                 
-                // New Circular Timer Design
-                ZStack {
-                    // Background circle
-                    Circle()
-                        .stroke(Color.black.opacity(0.05), lineWidth: 3)
-                        .frame(width: 52, height: 52)
+                // Timer on the right
+                HStack(spacing: 6) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
                     
-                    // Progress circle
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(Color.black, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                        .frame(width: 52, height: 52)
-                        .rotationEffect(.degrees(-90))
-                    
-                    // Time display
-                    VStack(spacing: -2) {
-                        Text("\(remainingTime)")
-                            .font(.system(size: 16, weight: .medium))
-                            .monospacedDigit()
-                        Text(remainingTime >= 60 ? "min" : "sec")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }
+                    Text(formattedTime)
+                        .font(.system(size: 16, weight: .medium, design: .monospaced))
+                        .foregroundColor(.black)
                 }
-                .frame(width: 52, height: 52)
             }
             
-            // Buttons
+            // Buttons in new order
             HStack(spacing: 10) {
-                Button(action: postponeAction) {
-                    ButtonContent(
-                        iconName: "alarm.fill",
-                        text: "Snooze",
-                        type: .secondary
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
+                AnimatedButton(
+                    action: {
+                        performExitAnimation {
+                            takeBreakNowAction()
+                        }
+                    },
+                    iconName: "cup.and.saucer.fill",
+                    text: "Take Break",
+                    type: .primary
+                )
                 
-                Button(action: skipAction) {
-                    ButtonContent(
-                        iconName: "forward.fill",
-                        text: "Skip",
-                        type: .secondary
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
+                AnimatedButton(
+                    action: {
+                        performExitAnimation {
+                            postponeAction()
+                        }
+                    },
+                    iconName: "zzz",
+                    text: "Snooze (5m)",
+                    type: .secondary
+                )
                 
-                Button(action: takeBreakNowAction) {
-                    ButtonContent(
-                        iconName: "cup.and.saucer.fill",
-                        text: "Take Break",
-                        type: .primary
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
+                AnimatedButton(
+                    action: {
+                        performExitAnimation {
+                            skipAction()
+                        }
+                    },
+                    iconName: "arrow.counterclockwise",
+                    text: "Skip",
+                    type: .secondary
+                )
             }
         }
         .padding(.horizontal, 20)
@@ -123,13 +117,14 @@ struct PreBreakNotificationView: View {
         )
         .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 5)
         .opacity(opacity)
-        .scaleEffect(scale)
+        .offset(x: slideOffset, y: 0)
         .onAppear {
             NSSound.beep()
             
-            withAnimation(.easeOut(duration: 0.35)) {
+            // Entry animation
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                slideOffset = 0
                 opacity = 1
-                scale = 1
             }
             
             startTimer()
@@ -139,21 +134,38 @@ struct PreBreakNotificationView: View {
         }
     }
     
+    private func performExitAnimation(completion: @escaping () -> Void) {
+        if isExiting { return }
+        isExiting = true
+        
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            slideOffset = 500  // Slide off to the right
+            opacity = 0
+        }
+        
+        // Delay action execution to allow animation to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            completion()
+        }
+    }
+    
     private func startTimer() {
         stopTimer()
         
         if remainingTime <= 0 {
-             stopTimer()
-             return
+            stopTimer()
+            return
         }
-
+        
         countdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if remainingTime > 1 {
                 remainingTime -= 1
             } else {
                 remainingTime = 0
                 stopTimer()
-                takeBreakNowAction()
+                performExitAnimation {
+                    takeBreakNowAction()
+                }
             }
         }
         RunLoop.current.add(countdownTimer!, forMode: .common)
@@ -170,6 +182,9 @@ struct ButtonContent: View {
     let iconName: String
     let text: String
     let type: ButtonType
+    
+    @State private var isPressed = false
+    @GestureState private var isPressing = false
     
     var body: some View {
         HStack(spacing: 6) {
@@ -191,6 +206,36 @@ struct ButtonContent: View {
                 .strokeBorder(Color.black.opacity(type == .primary ? 0 : 0.15), lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(type == .primary ? 0.2 : 0.05), radius: 2, x: 0, y: 1)
+        .scaleEffect(isPressing ? 0.95 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.4, blendDuration: 0), value: isPressing)
+    }
+}
+
+// Updated PreBreakNotificationView buttons
+struct AnimatedButton: View {
+    let action: () -> Void
+    let iconName: String
+    let text: String
+    let type: ButtonType
+    
+    var body: some View {
+        Button(action: action) {
+            ButtonContent(
+                iconName: iconName,
+                text: text,
+                type: type
+            )
+        }
+        .buttonStyle(SpringButtonStyle())
+    }
+}
+
+// Custom button style for spring animation
+struct SpringButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+            .animation(.spring(response: 0.2, dampingFraction: 0.4, blendDuration: 0), value: configuration.isPressed)
     }
 }
 
