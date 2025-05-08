@@ -36,19 +36,19 @@ struct PreBreakNotificationView: View {
                 HStack(spacing: 16) {
                     // Icon Circle
                     Circle()
-                        .fill(Color.black.opacity(0.05))
+                        .fill(Color.primary.opacity(0.05))
                         .frame(width: 42, height: 42)
                         .overlay(
                             Image(systemName: "bell.badge.fill")
                                 .font(.system(size: 18))
-                                .foregroundStyle(Color.black)
+                                .foregroundStyle(Color.primary)
                         )
                     
                     // Encouraging message
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Time to Recharge")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.black)
+                            .foregroundColor(Color.primary)
                         
                         Text("Take a moment to refresh")
                             .font(.system(size: 13))
@@ -66,7 +66,7 @@ struct PreBreakNotificationView: View {
                     
                     Text(formattedTime)
                         .font(.system(size: 16, weight: .medium, design: .monospaced))
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.primary)
                 }
             }
             
@@ -109,20 +109,25 @@ struct PreBreakNotificationView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .frame(width: 420, height: 140)
-        .background(Color(white: 0.96))
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(NSColor.controlBackgroundColor))
+        )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                .stroke(Color(NSColor.separatorColor), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 5)
         .opacity(opacity)
         .offset(x: slideOffset, y: 0)
         .onAppear {
-            NSSound.beep()
+            // NSSound.beep() // Old sound
+            // NSSound(named: "Tink")?.play() // Previous attempt
+            // NSSound(named: "Pop")?.play() // Previous attempt
+            NSSound(named: "Ping")?.play() // New system sound for pre-break
             
             // Entry animation
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+            withAnimation(.easeInOut(duration: 0.5)) {
                 slideOffset = 0
                 opacity = 1
             }
@@ -138,7 +143,7 @@ struct PreBreakNotificationView: View {
         if isExiting { return }
         isExiting = true
         
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+        withAnimation(.easeInOut(duration: 0.4)) {
             slideOffset = 500  // Slide off to the right
             opacity = 0
         }
@@ -196,16 +201,16 @@ struct ButtonContent: View {
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 14)
-        .foregroundColor(type == .primary ? .white : .black)
+        .foregroundColor(type == .primary ? Color.white : Color.primary)
         .background(
             Capsule()
-                .fill(type == .primary ? Color.black : Color.white)
+                .fill(type == .primary ? Color.accentColor : Color.primary.opacity(0.08))
         )
         .overlay(
             Capsule()
-                .strokeBorder(Color.black.opacity(type == .primary ? 0 : 0.15), lineWidth: 1)
+                .strokeBorder(type == .primary ? Color.clear : Color(NSColor.separatorColor), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(type == .primary ? 0.2 : 0.05), radius: 2, x: 0, y: 1)
+        
         .scaleEffect(isPressing ? 0.95 : 1.0)
         .animation(.spring(response: 0.2, dampingFraction: 0.4, blendDuration: 0), value: isPressing)
     }

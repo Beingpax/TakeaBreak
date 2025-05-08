@@ -3,46 +3,38 @@ import Combine
 import os.log
 
 class TimerManager: ObservableObject, SystemEventsDelegate {
-    private var timer: Timer?
+    // MARK: - Published Properties
+    @Published private(set) var timeUntilBreak: TimeInterval = 0
+    @Published private(set) var remainingBreakTime: Int = 0
     
-    @Published var timeUntilBreak: TimeInterval = 0
-    
+    // MARK: - Callbacks
     var onBreakTime: (() -> Void)?
-    
     var onPreBreakNotification: (() -> Void)?
-    
     var onHideNotifications: (() -> Void)?
     
-    var isBreakActive: Bool {
-        return isReminderShowing
-    }
-    
-    private var breakInterval: TimeInterval = 20 * 60
-    
-    private var isReminderShowing = false
-    
-    private var preBreakNotificationTime: TimeInterval = 30
-    
-    private var isPreBreakNotificationShowing = false
-    
-    private let settings: BreatherSettings
-    
-    private var settingsCancellable: AnyCancellable?
-    
-    private var systemEventsManager: SystemEventsManager?
-    
+    // MARK: - Private Properties
+    private var timer: Timer?
     private var breakCountdownTimer: Timer?
-    
-    @Published var remainingBreakTime: Int = 0
-    
+    private let settings: BreatherSettings
+    private var settingsCancellable: AnyCancellable?
+    private var systemEventsManager: SystemEventsManager?
     private let logger = Logger(subsystem: "com.yourapp.breather", category: "timerbreak")
     
-    private func resetBreakRelatedStatesAndTimers() {
-        isReminderShowing = false
-        isPreBreakNotificationShowing = false
-        stopBreakCountdown()
-    }
+    // Timer intervals
+    private var breakInterval: TimeInterval
+    private var preBreakNotificationTime: TimeInterval
     
+    // State tracking
+    private var isReminderShowing = false
+    private var isPreBreakNotificationShowing = false
+    private var systemIsCurrentlyInactive = false
+    private var pendingWorkTimerStartAfterWakeUp = false
+    
+    // MARK: - Public Properties
+    var isBreakActive: Bool { isReminderShowing }
+    var isEnabled: Bool { settings.isEnabled }
+    
+    // MARK: - Initialization
     init(settings: BreatherSettings) {
         self.settings = settings
         self.breakInterval = settings.breakIntervalMinutes * 60
@@ -55,58 +47,7 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
         setupSettingsSubscription()
     }
     
-    private func updateBreakInterval(_ minutes: Double) {
-        let newInterval = minutes * 60
-        if newInterval != self.breakInterval {
-            self.breakInterval = newInterval
-            if settings.isEnabled && timer != nil && !isReminderShowing && !isPreBreakNotificationShowing {
-                stopTimer()
-                startTimer(resetTime: true)
-            }
-        }
-    }
-    
-    private func updatePreBreakNotificationTime(_ minutes: Double) {
-        self.preBreakNotificationTime = minutes * 60
-    }
-    
-    private func handleIsEnabledChange(newValue: Bool) {
-        onHideNotifications?()
-        resetBreakRelatedStatesAndTimers()
-        stopTimer()
-
-        if newValue {
-            startTimer(resetTime: true)
-        }
-    }
-    
-    private func setupSettingsSubscription() {
-        settingsCancellable = settings.objectWillChange
-            .sink { [weak self] _ in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    
-                    if self.breakInterval != self.settings.breakIntervalMinutes * 60 {
-                        self.updateBreakInterval(self.settings.breakIntervalMinutes)
-                    }
-                    
-                    if self.preBreakNotificationTime != self.settings.preBreakNotificationMinutes * 60 {
-                        self.updatePreBreakNotificationTime(self.settings.preBreakNotificationMinutes)
-                    }
-                    
-                    self.handleIsEnabledChange(newValue: self.settings.isEnabled)
-                }
-            }
-    }
-    
-    var isEnabled: Bool {
-        return settings.isEnabled
-    }
-    
-    private func shouldTimerRun() -> Bool {
-        return settings.isEnabled && !isReminderShowing && !isPreBreakNotificationShowing
-    }
-    
+    // MARK: - Timer Control
     func startTimer(resetTime: Bool = true) {
         guard settings.isEnabled else {
             stopTimer()
@@ -115,9 +56,7 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
         
         stopTimer()
         
-        if isReminderShowing || isPreBreakNotificationShowing {
-            return
-        }
+        if isReminderShowing || isPreBreakNotificationShowing { return }
         
         if resetTime {
             timeUntilBreak = breakInterval
@@ -129,19 +68,15 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
             if self.timeUntilBreak > 0 {
                 self.timeUntilBreak -= 1
                 
-                if !self.isPreBreakNotificationShowing && self.timeUntilBreak <= self.preBreakNotificationTime && self.timeUntilBreak > 0 && self.preBreakNotificationTime > 0 {
+                // Check for pre-break notification
+                if !self.isPreBreakNotificationShowing && 
+                   self.timeUntilBreak <= self.preBreakNotificationTime && 
+                   self.timeUntilBreak > 0 && 
+                   self.preBreakNotificationTime > 0 {
                     self.showPreBreakNotification()
                 }
             } else {
-                if !self.isPreBreakNotificationShowing {
-                    self.pauseTimer()
-                    self.onBreakTime?()
-                } else {
-                    self.isReminderShowing = true
-                    self.isPreBreakNotificationShowing = false
-                    self.stopTimer()
-                    self.onBreakTime?()
-                }
+                self.handleTimerExpiration()
             }
         }
         
@@ -150,45 +85,17 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
         }
     }
     
-    func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    func pauseTimer() {
-        isReminderShowing = true
-        isPreBreakNotificationShowing = false
-        stopTimer()
-    }
-    
-    func resumeTimer() {
-        resetBreakRelatedStatesAndTimers()
-        if settings.isEnabled {
-            startTimer(resetTime: true)
-        }
-    }
-    
-    func showPreBreakNotification() {
-        isPreBreakNotificationShowing = true
-        stopTimer()
-        onPreBreakNotification?()
-    }
-    
-    func resetTimer() {
-        resetBreakRelatedStatesAndTimers()
-
-        if settings.isEnabled {
-            startTimer(resetTime: true) 
-        } else {
+    private func handleTimerExpiration() {
+        if !isPreBreakNotificationShowing {
+            isReminderShowing = true
+            isPreBreakNotificationShowing = false
             stopTimer()
-        }
-    }
-    
-    func extendTimer(by seconds: TimeInterval) {
-        isPreBreakNotificationShowing = false
-        if settings.isEnabled {
-            timeUntilBreak += seconds
-            startTimer(resetTime: false)
+            onBreakTime?()
+        } else {
+            isReminderShowing = true
+            isPreBreakNotificationShowing = false
+            stopTimer()
+            onBreakTime?()
         }
     }
     
@@ -202,10 +109,9 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
         
         breakCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
+            self.remainingBreakTime = max(0, self.remainingBreakTime - 1)
             
-            if self.remainingBreakTime > 0 {
-                self.remainingBreakTime -= 1
-            } else {
+            if self.remainingBreakTime <= 0 {
                 self.stopBreakCountdown()
             }
         }
@@ -215,81 +121,159 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
         }
     }
     
+    // MARK: - Timer State Management
+    func resumeTimer() {
+        resetBreakRelatedStates()
+        if settings.isEnabled {
+            if systemIsCurrentlyInactive {
+                pendingWorkTimerStartAfterWakeUp = true
+            } else {
+                startTimer(resetTime: true)
+            }
+        }
+    }
+    
+    func resetTimer() {
+        resetBreakRelatedStates()
+        if settings.isEnabled {
+            startTimer(resetTime: true)
+        } else {
+            stopTimer()
+        }
+    }
+    
+    func extendTimer(by seconds: TimeInterval) {
+        isPreBreakNotificationShowing = false
+        if settings.isEnabled {
+            timeUntilBreak += seconds
+            startTimer(resetTime: false)
+        }
+    }
+    
+    // MARK: - Timer Cleanup
+    func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
     func stopBreakCountdown() {
         breakCountdownTimer?.invalidate()
         breakCountdownTimer = nil
     }
     
-    func adjustBreakTime(by seconds: Int) {
-        let newTime = max(0, remainingBreakTime + seconds)
-        remainingBreakTime = newTime
-    }
-    
-    func formattedTimeRemaining() -> String {
-        let minutes = Int(timeUntilBreak) / 60
-        let seconds = Int(timeUntilBreak) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
-    
-    func formattedTimeRemainingInMinutes() -> String {
-        let minutes = Int(ceil(timeUntilBreak / 60.0))
-        return String(format: "%dm", minutes)
-    }
-    
-    func formattedBreakCountdown() -> String {
-        let minutes = remainingBreakTime / 60
-        let seconds = remainingBreakTime % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
-    
-    private func handleSystemEventStart() {
-        if isReminderShowing {
-            return
-        }
-        
-        onHideNotifications?()
+    private func resetBreakRelatedStates() {
+        isReminderShowing = false
         isPreBreakNotificationShowing = false
-        stopTimer()
         stopBreakCountdown()
     }
     
-    private func handleSystemEventEnd() {
-        if isReminderShowing {
-            return
+    // MARK: - Break Management
+    func showPreBreakNotification() {
+        isPreBreakNotificationShowing = true
+        stopTimer()
+        onPreBreakNotification?()
+    }
+    
+    func adjustBreakTime(by seconds: Int) {
+        remainingBreakTime = max(0, remainingBreakTime + seconds)
+    }
+    
+    // MARK: - Time Formatting
+    func formattedTimeRemaining() -> String {
+        formatTime(Int(timeUntilBreak))
+    }
+    
+    func formattedTimeRemainingInMinutes() -> String {
+        String(format: "%dm", Int(ceil(timeUntilBreak / 60.0)))
+    }
+    
+    func formattedBreakCountdown() -> String {
+        formatTime(remainingBreakTime)
+    }
+    
+    private func formatTime(_ totalSeconds: Int) -> String {
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+    
+    // MARK: - Settings Management
+    private func setupSettingsSubscription() {
+        settingsCancellable = settings.objectWillChange
+            .sink { [weak self] _ in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    self.handleSettingsChange()
+                }
+            }
+    }
+    
+    private func handleSettingsChange() {
+        let newBreakInterval = settings.breakIntervalMinutes * 60
+        let newPreBreakTime = settings.preBreakNotificationMinutes * 60
+        
+        if breakInterval != newBreakInterval {
+            breakInterval = newBreakInterval
+            if shouldRestartTimer {
+                stopTimer()
+                startTimer(resetTime: true)
+            }
         }
         
-        if settings.isEnabled {
-            resetTimer()
-        } else {
+        if preBreakNotificationTime != newPreBreakTime {
+            preBreakNotificationTime = newPreBreakTime
+        }
+        
+        if !settings.isEnabled {
+            onHideNotifications?()
+            resetBreakRelatedStates()
+            stopTimer()
+        } else if shouldRestartTimer {
+            startTimer(resetTime: true)
+        }
+    }
+    
+    private var shouldRestartTimer: Bool {
+        settings.isEnabled && timer != nil && !isReminderShowing && !isPreBreakNotificationShowing
+    }
+    
+    // MARK: - System Events Handling
+    private func handleSystemEventStart() {
+        systemIsCurrentlyInactive = true
+        if !isReminderShowing {
+            onHideNotifications?()
+            isPreBreakNotificationShowing = false
             stopTimer()
             stopBreakCountdown()
         }
     }
-
-    func systemWillSleep() { 
-        handleSystemEventStart()
+    
+    private func handleSystemEventEnd() {
+        systemIsCurrentlyInactive = false
+        if !isReminderShowing {
+            if settings.isEnabled {
+                if pendingWorkTimerStartAfterWakeUp {
+                    pendingWorkTimerStartAfterWakeUp = false
+                    startTimer(resetTime: true)
+                } else {
+                    resetTimer()
+                }
+            } else {
+                stopTimer()
+                stopBreakCountdown()
+            }
+        }
     }
     
-    func systemDidWake() { 
-        handleSystemEventEnd()
-    }
+    // MARK: - SystemEventsDelegate Implementation
+    func systemWillSleep() { handleSystemEventStart() }
+    func systemDidWake() { handleSystemEventEnd() }
+    func screenSaverDidStart() { handleSystemEventStart() }
+    func screenSaverDidStop() { handleSystemEventEnd() }
+    func displayDidSleep() { handleSystemEventStart() }
+    func displayDidWake() { handleSystemEventEnd() }
     
-    func screenSaverDidStart() { 
-        handleSystemEventStart()
-    }
-    
-    func screenSaverDidStop() { 
-        handleSystemEventEnd()
-    }
-    
-    func displayDidSleep() { 
-        handleSystemEventStart()
-    }
-    
-    func displayDidWake() { 
-        handleSystemEventEnd()
-    }
-    
+    // MARK: - Cleanup
     deinit {
         stopTimer()
         stopBreakCountdown()

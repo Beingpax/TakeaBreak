@@ -175,6 +175,8 @@ struct ReminderView: View {
         .opacity(opacity)
         .scaleEffect(scale)
         .onAppear {
+            NSSound(named: "Hero")?.play()
+
             withAnimation(.easeOut(duration: 0.7)) {
                 opacity = 1
                 scale = 1
