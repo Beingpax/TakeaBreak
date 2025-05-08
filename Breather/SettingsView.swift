@@ -262,7 +262,7 @@ private struct TimingSettingsContent: View {
                     value: $settings.breakIntervalMinutes,
                     formatter: minutesFormatter,
                     unit: "min",
-                    range: 0.5...60,
+                    range: 20...60,
                     step: 5.0
                 )
                 EnhancedNumericSetting(

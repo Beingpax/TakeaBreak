@@ -13,6 +13,8 @@ struct ReminderView: View {
     @State private var scale: CGFloat = 0.95
     @State private var showLockError = false
     @State private var isDismissButtonDisabled = true
+    @State private var currentTime = Date()
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     init(autoDismissDuration: TimeInterval, 
          dismissAction: @escaping () -> Void, 
@@ -28,6 +30,12 @@ struct ReminderView: View {
     
     var formattedCountdown: String {
         return timerManager.formattedBreakCountdown()
+    }
+    
+    var formattedCurrentTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: currentTime)
     }
     
     func adjustTime(by seconds: Int) {
@@ -57,100 +65,112 @@ struct ReminderView: View {
             }
             .ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                VStack(spacing: 15) {
-                    Text("Time to Take a Break")
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.white, .white.opacity(0.7)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+            GeometryReader { geometry in
+                VStack(spacing: 0) {
+                    // Top section with equal height as bottom
+                    VStack(spacing: 15) {
+                        Text("Time to Take a Break")
+                            .font(.system(size: 56, weight: .bold, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.white, .white.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .multilineTextAlignment(.center)
-                    
-                    Text("Rest your eyes and stretch your body")
-                        .font(.system(size: 24, weight: .regular, design: .rounded))
-                        .foregroundColor(.white.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 60)
-                
-                Spacer()
-                
-                Text(motivationalQuote)
-                    .font(.system(size: 80, weight: .semibold, design: .rounded))
-                    .italic()
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.5)
-                    .padding(.horizontal, 40)
-                
-                Spacer()
-                
-                VStack(spacing: 20) {
-                    Text(formattedCountdown)
-                        .font(.system(size: 96, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .frame(minWidth: 180)
-
-                    HStack(alignment: .center, spacing: 40) {
-                        Button(action: {
-                            do {
-                                let task = Process()
-                                task.launchPath = "/usr/bin/pmset"
-                                task.arguments = ["displaysleepnow"]
-                                try task.run()
-                            } catch {
-                                showLockError = true
-                            }
-                        }) {
-                            VStack(spacing: 8) {
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 36))
-                                Text("Lock Screen")
-                                    .font(.system(size: 14, weight: .medium))
-                            }
-                            .frame(width: 100)
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(.white.opacity(0.8))
-
-                        Button(action: {
-                            adjustTime(by: Int(autoDismissDuration))
-                        }) {
-                            VStack(spacing: 8) {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 36, weight: .semibold))
-                                Text("Add Time")
-                                    .font(.system(size: 14, weight: .medium))
-                            }
-                            .frame(width: 100)
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(.white.opacity(0.8))
+                            .multilineTextAlignment(.center)
                         
-                        Button(action: {
-                            autoDismiss()
-                        }) {
-                            VStack(spacing: 8) {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 36, weight: .semibold))
-                                Text("Dismiss")
-                                    .font(.system(size: 14, weight: .medium))
-                            }
-                            .frame(width: 100)
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(.white.opacity(0.8))
-                        .disabled(isDismissButtonDisabled)
+                        Text("Rest your eyes and stretch your body")
+                            .font(.system(size: 24, weight: .regular, design: .rounded))
+                            .foregroundColor(.white.opacity(0.8))
+                            .multilineTextAlignment(.center)
+                            
+                        Text(formattedCurrentTime)
+                            .font(.system(size: 36, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.9))
+                            .padding(.top, 10)
                     }
+                    .padding(.top, 60)
+                    .frame(height: geometry.size.height * 0.3)
+                    
+                    // Center section - Motivational quote
+                    Spacer()
+                    
+                    Text(motivationalQuote)
+                        .font(.system(size: 50, weight: .semibold, design: .rounded))
+                        .italic()
+                        .foregroundColor(.white.opacity(0.9))
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.5)
+                        .padding(.horizontal, 40)
+                    
+                    Spacer()
+                    
+                    // Bottom section with equal height as top
+                    VStack(spacing: 20) {
+                        Text(formattedCountdown)
+                            .font(.system(size: 96, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .frame(minWidth: 180)
+
+                        HStack(alignment: .center, spacing: 40) {
+                            Button(action: {
+                                do {
+                                    let task = Process()
+                                    task.launchPath = "/usr/bin/pmset"
+                                    task.arguments = ["displaysleepnow"]
+                                    try task.run()
+                                } catch {
+                                    showLockError = true
+                                }
+                            }) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 36))
+                                    Text("Lock Screen")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .frame(width: 100)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.white.opacity(0.8))
+
+                            Button(action: {
+                                adjustTime(by: Int(autoDismissDuration))
+                            }) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 36, weight: .semibold))
+                                    Text("Add Time")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .frame(width: 100)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.white.opacity(0.8))
+                            
+                            Button(action: {
+                                autoDismiss()
+                            }) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 36, weight: .semibold))
+                                    Text("Dismiss")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .frame(width: 100)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.white.opacity(0.8))
+                            .disabled(isDismissButtonDisabled)
+                        }
+                    }
+                    .padding(.bottom, 60)
+                    .frame(height: geometry.size.height * 0.3)
                 }
-                .padding(.bottom, 60)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(.horizontal, 40)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .opacity(opacity)
         .scaleEffect(scale)
@@ -169,6 +189,9 @@ struct ReminderView: View {
             if time <= 0 {
                 autoDismiss()
             }
+        }
+        .onReceive(timer) { _ in
+            currentTime = Date()
         }
     }
 
