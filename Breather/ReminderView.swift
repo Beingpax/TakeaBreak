@@ -68,9 +68,9 @@ struct ReminderView: View {
             GeometryReader { geometry in
                 VStack(spacing: 0) {
                     // Top section with equal height as bottom
-                    VStack(spacing: 15) {
+                    VStack(spacing: 16) {
                         Text("Time to Take a Break")
-                            .font(.system(size: 56, weight: .bold, design: .rounded))
+                            .font(.system(size: 52, weight: .bold, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [.white, .white.opacity(0.7)],
@@ -81,14 +81,14 @@ struct ReminderView: View {
                             .multilineTextAlignment(.center)
                         
                         Text("Rest your eyes and stretch your body")
-                            .font(.system(size: 24, weight: .regular, design: .rounded))
+                            .font(.system(size: 22, weight: .regular, design: .rounded))
                             .foregroundColor(.white.opacity(0.8))
                             .multilineTextAlignment(.center)
                             
                         Text(formattedCurrentTime)
-                            .font(.system(size: 36, weight: .medium, design: .rounded))
+                            .font(.system(size: 40, weight: .medium, design: .rounded))
                             .foregroundColor(.white.opacity(0.9))
-                            .padding(.top, 10)
+                            .padding(.top, 8)
                     }
                     .padding(.top, 60)
                     .frame(height: geometry.size.height * 0.3)
@@ -107,9 +107,9 @@ struct ReminderView: View {
                     Spacer()
                     
                     // Bottom section with equal height as top
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         Text(formattedCountdown)
-                            .font(.system(size: 96, weight: .bold, design: .rounded))
+                            .font(.system(size: 92, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .frame(minWidth: 180)
 
@@ -124,9 +124,9 @@ struct ReminderView: View {
                                     showLockError = true
                                 }
                             }) {
-                                VStack(spacing: 8) {
+                                VStack(spacing: 6) {
                                     Image(systemName: "lock.fill")
-                                        .font(.system(size: 36))
+                                        .font(.system(size: 34))
                                     Text("Lock Screen")
                                         .font(.system(size: 14, weight: .medium))
                                 }
@@ -138,9 +138,9 @@ struct ReminderView: View {
                             Button(action: {
                                 adjustTime(by: Int(autoDismissDuration))
                             }) {
-                                VStack(spacing: 8) {
+                                VStack(spacing: 6) {
                                     Image(systemName: "plus")
-                                        .font(.system(size: 36, weight: .semibold))
+                                        .font(.system(size: 34, weight: .semibold))
                                     Text("Add Time")
                                         .font(.system(size: 14, weight: .medium))
                                 }
@@ -152,9 +152,9 @@ struct ReminderView: View {
                             Button(action: {
                                 autoDismiss()
                             }) {
-                                VStack(spacing: 8) {
+                                VStack(spacing: 6) {
                                     Image(systemName: "xmark")
-                                        .font(.system(size: 36, weight: .semibold))
+                                        .font(.system(size: 34, weight: .semibold))
                                     Text("Dismiss")
                                         .font(.system(size: 14, weight: .medium))
                                 }
