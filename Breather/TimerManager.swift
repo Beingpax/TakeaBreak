@@ -228,8 +228,11 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
             onHideNotifications?()
             resetBreakRelatedStates()
             stopTimer()
-        } else if shouldRestartTimer {
-            startTimer(resetTime: true)
+        } else {
+            // When breaks are enabled, always start the timer if there's no active break
+            if !isReminderShowing && !isPreBreakNotificationShowing {
+                startTimer(resetTime: true)
+            }
         }
     }
     
