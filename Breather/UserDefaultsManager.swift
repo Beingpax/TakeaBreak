@@ -21,7 +21,12 @@ struct UserDefaultsManager {
             "Step away to come back stronger.",
             "Breathe deep, you're doing great!",
             "A moment of rest is a moment of strength.",
-            "Hydrate, stretch, and smile."
+            "Hydrate, stretch, and smile.",
+            "Rest is not a reward, it's a necessity.",
+            "Mindful breaks create mindful work.",
+            "Every break is a step toward better focus.",
+            "Your mind deserves this moment of peace.",
+            "Make space for greatness - take a break."
         ]
     }
     
