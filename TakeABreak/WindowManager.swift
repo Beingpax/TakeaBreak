@@ -4,12 +4,12 @@ import AppKit
 class WindowManager: ObservableObject {
     private var reminderPanels: [KeyablePanel] = []
     private var panelHostingViews: [KeyablePanel: NSHostingView<ReminderView>] = [:]
-    private var settings: BreatherSettings
+    private var settings: TakeABreakSettings
     private var timerManager: TimerManager
     private var preBreakPanel: NSPanel?
     private var preBreakHostingView: NSHostingView<PreBreakNotificationView>?
 
-    init(settings: BreatherSettings, timerManager: TimerManager) {
+    init(settings: TakeABreakSettings, timerManager: TimerManager) {
         self.settings = settings
         self.timerManager = timerManager
     }

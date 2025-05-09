@@ -28,11 +28,14 @@ struct UserDefaultsManager {
             "Your mind deserves this moment of peace.",
             "Make space for greatness - take a break."
         ]
+        
+        // Onboarding
+        static let hasCompletedOnboarding: Bool = false
     }
     
     // MARK: - Save/Load Methods
     
-    static func saveSettings(_ settings: BreatherSettings) {
+    static func saveSettings(_ settings: TakeABreakSettings) {
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(settings)
@@ -42,14 +45,14 @@ struct UserDefaultsManager {
         }
     }
     
-    static func loadSettings() -> BreatherSettings? {
+    static func loadSettings() -> TakeABreakSettings? {
         guard let data = UserDefaults.standard.data(forKey: settingsKey) else {
             return nil
         }
         
         do {
             let decoder = JSONDecoder()
-            return try decoder.decode(BreatherSettings.self, from: data)
+            return try decoder.decode(TakeABreakSettings.self, from: data)
         } catch {
             print("Failed to decode settings: \(error)")
             return nil

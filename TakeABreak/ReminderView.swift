@@ -5,7 +5,7 @@ import AppKit
 struct ReminderView: View {
     let autoDismissDuration: TimeInterval
     var dismissAction: () -> Void
-    @ObservedObject var settings: BreatherSettings
+    @ObservedObject var settings: TakeABreakSettings
     @ObservedObject var timerManager: TimerManager
     let motivationalQuote: String
     
@@ -18,7 +18,7 @@ struct ReminderView: View {
     
     init(autoDismissDuration: TimeInterval, 
          dismissAction: @escaping () -> Void, 
-         settings: BreatherSettings, 
+         settings: TakeABreakSettings, 
          timerManager: TimerManager,
          motivationalQuote: String) {
         self.autoDismissDuration = autoDismissDuration

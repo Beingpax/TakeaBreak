@@ -8,13 +8,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerManager: TimerManager?
     private var windowManager: WindowManager?
     // BreatherSettings is now standalone, loaded from storage
-    private var settings = BreatherSettings()
+    private var settings = TakeABreakSettings()
     private var menuBarManager: MenuBarManager?
     private var menuRefreshTimer: Timer?
     private var cancellables = Set<AnyCancellable>() // To hold subscriptions
+    private var onboardingWindowManager: OnboardingWindowManager?
 
-    // Keep a reference to the settings object to pass to the SwiftUI App
-    var breatherSettings: BreatherSettings? {
+    // Expose settings for use in the app
+    var takeABreakSettings: TakeABreakSettings? {
         return settings
     }
 
@@ -62,9 +63,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             windowManagerInstance?.hideAllNotificationsForSystemEvent()
         }
         
-        // Only start the timer if the setting is enabled
-        if settingsInstance.isEnabled {
-            timerManagerInstance.startTimer()
+        // Check if onboarding needs to be shown
+        if !settingsInstance.hasCompletedOnboarding {
+            showOnboarding()
+        } else {
+            // Only start the timer if the setting is enabled and onboarding is completed
+            if settingsInstance.isEnabled {
+                timerManagerInstance.startTimer()
+            }
         }
         
         // Start periodic menu refresh timer
@@ -73,6 +79,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         // LaunchAtLogin state is now handled by the LaunchAtLogin library
+    }
+    
+    private func showOnboarding() {
+        onboardingWindowManager = OnboardingWindowManager(settings: settings) { [weak self] in
+            // Onboarding completed, start the timer if enabled
+            guard let self = self else { return }
+            if self.settings.isEnabled, let timerManager = self.timerManager {
+                timerManager.startTimer()
+            }
+        }
+        onboardingWindowManager?.showOnboardingWindow()
     }
     
     func applicationWillTerminate(_ notification: Notification) {

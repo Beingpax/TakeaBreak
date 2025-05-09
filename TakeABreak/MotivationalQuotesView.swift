@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Motivational Quotes Section
 struct MotivationalQuotesSectionView: View {
-    @ObservedObject var settings: BreatherSettings
+    @ObservedObject var settings: TakeABreakSettings
     @State private var newMotivationalQuote: String = ""
     @State private var showResetAlert = false
     @State private var isShowingAddQuoteSheet = false

@@ -10,7 +10,8 @@ struct WallpaperOption: Identifiable, Hashable {
 
 let availableWallpapers: [WallpaperOption] = [
     WallpaperOption(id: "gradient", name: "Default Gradient", previewImageName: "gradient"),
-    WallpaperOption(id: "mountain", name: "Mountain View", previewImageName: "mountain")
+    WallpaperOption(id: "mountain", name: "Mountain View", previewImageName: "mountain"),
+    WallpaperOption(id: "sunset", name: "Peaceful Sunset", previewImageName: "sunset")
 ]
 
 // Enum for TabView tags
@@ -20,8 +21,8 @@ enum SettingsTabTag {
 
 // MARK: - Main Settings View
 public struct SettingsView: View {
-    @ObservedObject var settings: BreatherSettings
-    @State private var selectedTab: SettingsTabTag = .customization
+    @ObservedObject var settings: TakeABreakSettings
+    @State private var selectedTab: SettingsTabTag = .general
 
     private var minutesFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -41,7 +42,7 @@ public struct SettingsView: View {
         return formatter
     }()
 
-    public init(settings: BreatherSettings) {
+    public init(settings: TakeABreakSettings) {
         self.settings = settings
     }
 
@@ -83,11 +84,20 @@ public struct SettingsView: View {
                         DetailedIcon(systemName: "bell.badge.fill", themeColor: .orange)
                     }
                 }
+                
+                NavigationLink(destination: AboutSettingsContent()) {
+                    Label {
+                        Text("About")
+                            .font(.system(size: 13, weight: .medium))
+                    } icon: {
+                        DetailedIcon(systemName: "info.circle.fill", themeColor: .gray)
+                    }
+                }
             }
             .listStyle(SidebarListStyle())
             .frame(minWidth: 200, maxWidth: 250)
             
-            CustomizationView(settings: settings)
+            GeneralSettingsContent(settings: settings)
         }
         .frame(minWidth: 700, minHeight: 400)
         .navigationTitle("")
@@ -165,44 +175,128 @@ struct DetailedSectionHeader: View {
 
 // MARK: - Content Views
 private struct GeneralSettingsContent: View {
-    @ObservedObject var settings: BreatherSettings
+    @ObservedObject var settings: TakeABreakSettings
     var body: some View {
-        Form {
-            Section {
-                VStack(spacing: 16) {
-                    Toggle(isOn: $settings.isEnabled) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Enable Break Reminders")
-                                .font(.system(size: 13, weight: .medium))
-                            Text("Get gentle reminders to take breaks while working")
+        ScrollView {
+            VStack(spacing: 8) {
+                // First Form: General Settings
+                Form {
+                    Section {
+                        VStack(spacing: 16) {
+                            Toggle(isOn: $settings.isEnabled) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Enable Break Reminders")
+                                        .font(.system(size: 13, weight: .medium))
+                                    Text("Get gentle reminders to take breaks while working")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .toggleStyle(.switch)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                LaunchAtLogin.Toggle()
+                                Text("Start app automatically at login")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Divider()
+                            
+                            Button(action: {
+                                settings.hasCompletedOnboarding = false
+                                // Create and show alert
+                                let alert = NSAlert()
+                                alert.messageText = "Onboarding Reset"
+                                alert.informativeText = "The onboarding will be shown next time you restart the app."
+                                alert.alertStyle = .informational
+                                alert.addButton(withTitle: "OK")
+                                alert.runModal()
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.counterclockwise.circle")
+                                        .foregroundColor(.blue)
+                                    Text("Reset Onboarding")
+                                        .foregroundColor(.primary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            
+                            Text("Show the welcome and setup screens again on next launch")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
+                                
+                        }.padding(.vertical, 4)
+                    } header: {
+                        Text("General")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .padding(.bottom, 4)
+                    }
+                }
+                .formStyle(.grouped)
+                
+                // Second Form: Check out MyApps
+                Form {
+                    Section {
+                        Link(destination: URL(string: "https://tryvoiceink.com")!) {
+                            HStack(spacing: 15) {
+                                // Custom DetailedIcon-style container for voiceink
+                                ZStack {
+                                    // Base with gradient and outer shadow
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.purple.opacity(0.8), Color.purple.opacity(0.6)]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .shadow(color: Color.purple.opacity(0.3), radius: 3, x: 1, y: 2)
+                                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+                                    
+                                    // Inner Bevel Effect
+                                    RoundedRectangle(cornerRadius: 9)
+                                        .strokeBorder(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.white.opacity(0.3), Color.clear, Color.purple.opacity(0.2), Color.purple.opacity(0.5)]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1.5
+                                        )
+                                        .padding(0.5)
+                                    
+                                    // App Icon
+                                    Image("voiceink")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .padding(8)
+                                }
+                                .frame(width: 40, height: 40)
+                                
+                                Text("VoiceInk - Voice-to-text Dictation app")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
                         }
+                        .buttonStyle(.plain)
+                    } header: {
+                        Text("Check out my other apps")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .padding(.bottom, 4)
                     }
-                    .toggleStyle(.switch)
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        LaunchAtLogin.Toggle()
-                        Text("Start Breather automatically at login")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                    }
-                }.padding(.vertical, 8)
-            } header: {
-                DetailedSectionHeader(
-                    title: "General",
-                    subtitle: "Basic app settings and behavior",
-                    systemName: "gearshape.fill",
-                    themeColor: .blue
-                )
+                }
+                .formStyle(.grouped)
             }
+            .padding(.horizontal, 8)
         }
-        .formStyle(.grouped)
     }
 }
 
 struct CustomizationView: View {
-    @ObservedObject var settings: BreatherSettings
+    @ObservedObject var settings: TakeABreakSettings
     
     var body: some View {
         Form {
@@ -249,7 +343,7 @@ struct CustomizationView: View {
 }
 
 private struct TimingSettingsContent: View {
-    @ObservedObject var settings: BreatherSettings
+    @ObservedObject var settings: TakeABreakSettings
     let minutesFormatter: NumberFormatter
     let secondsFormatter: NumberFormatter
     
@@ -288,7 +382,7 @@ private struct TimingSettingsContent: View {
 }
 
 private struct NotificationSettingsContent: View {
-    @ObservedObject var settings: BreatherSettings
+    @ObservedObject var settings: TakeABreakSettings
     let minutesFormatter: NumberFormatter
     let secondsFormatter: NumberFormatter
     
@@ -371,7 +465,7 @@ struct EnhancedNumericSetting: View {
 }
 
 // MARK: - Helper Views
-private struct SectionHeader: View {
+private struct SectionsHeader: View {
     let title: String
     let systemImage: String
     var body: some View {
@@ -457,10 +551,49 @@ private struct NumericSetting: View {
     }
 }
 
+// MARK: - About Content View
+private struct AboutSettingsContent: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 128, height: 128)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .shadow(radius: 10)
+
+            VStack(spacing: 8) {
+                Text("Take A Break") // App Name (can be dynamic if needed)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+
+                if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+                   let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
+                    Text("Version \(version) (Build \(build))")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Text("This application reminds you to take regular breaks during your work sessions. Taking short breaks helps maintain good back and eye health, keeping you productive and feeling great!")
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 40)
+            
+            Spacer() // Pushes content to the top
+
+        }
+        .padding(.top, 40) // Add some padding at the top
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Make it fill the space
+        .background(Color(NSColor.windowBackgroundColor)) // Optional: Set a background color
+    }
+}
+
 // MARK: - Preview
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        let previewSettings = BreatherSettings()
+        let previewSettings = TakeABreakSettings()
         SettingsView(settings: previewSettings)
             .preferredColorScheme(.dark) 
         SettingsView(settings: previewSettings)

@@ -1,6 +1,6 @@
 //
-//  BreatherApp.swift
-//  Breather
+//  TakeABreakApp.swift
+//  Take a Break
 //
 //  Created by Prakash Joshi on 22/04/2025.
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct BreatherApp: App {
+struct TakeABreakApp: App {
     // Use the app delegate
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
@@ -19,8 +19,8 @@ struct BreatherApp: App {
         // The Settings scene provides the standard macOS settings window
         // accessible via Cmd+,
         Settings {
-            // Ensure appDelegate.breatherSettings is not nil before creating the view
-            if let settings = appDelegate.breatherSettings {
+            // Ensure appDelegate.takeABreakSettings is not nil before creating the view
+            if let settings = appDelegate.takeABreakSettings {
                 SettingsView(settings: settings)
             } else {
                 // Provide a fallback view or handle the nil case appropriately

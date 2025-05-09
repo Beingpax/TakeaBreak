@@ -15,7 +15,7 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
     // MARK: - Private Properties
     private var timer: Timer?
     private var breakCountdownTimer: Timer?
-    private let settings: BreatherSettings
+    private let settings: TakeABreakSettings
     private var settingsCancellable: AnyCancellable?
     private var systemEventsManager: SystemEventsManager?
     private let logger = Logger(subsystem: "com.yourapp.breather", category: "timerbreak")
@@ -35,7 +35,7 @@ class TimerManager: ObservableObject, SystemEventsDelegate {
     var isEnabled: Bool { settings.isEnabled }
     
     // MARK: - Initialization
-    init(settings: BreatherSettings) {
+    init(settings: TakeABreakSettings) {
         self.settings = settings
         self.breakInterval = settings.breakIntervalMinutes * 60
         self.preBreakNotificationTime = settings.preBreakNotificationMinutes * 60

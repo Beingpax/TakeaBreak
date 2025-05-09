@@ -4,11 +4,11 @@ import AppKit
 class MenuBarManager: ObservableObject {
     private var statusItem: NSStatusItem?
     private var timerManager: TimerManager
-    private var settings: BreatherSettings
+    private var settings: TakeABreakSettings
     private var settingsWindow: NSWindow?
     private var settingsWindowDelegate: SettingsWindowDelegate?
     
-    init(timerManager: TimerManager, settings: BreatherSettings) {
+    init(timerManager: TimerManager, settings: TakeABreakSettings) {
         self.timerManager = timerManager
         self.settings = settings
         
@@ -119,7 +119,7 @@ class MenuBarManager: ObservableObject {
         self.settingsWindowDelegate = windowDelegate
         window.delegate = windowDelegate
         
-        window.title = "Breather Settings"
+        window.title = "Take a Break Settings"
         window.center()
         window.contentView = NSHostingView(rootView: contentView)
         window.isReleasedWhenClosed = false

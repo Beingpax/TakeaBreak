@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-public class BreatherSettings: ObservableObject, Codable {
+public class TakeABreakSettings: ObservableObject, Codable {
     // Break settings
     @Published public var breakIntervalMinutes: Double {
         didSet { UserDefaultsManager.saveSettings(self) }
@@ -29,6 +29,11 @@ public class BreatherSettings: ObservableObject, Codable {
         didSet { UserDefaultsManager.saveSettings(self) }
     }
     
+    // Onboarding
+    @Published public var hasCompletedOnboarding: Bool {
+        didSet { UserDefaultsManager.saveSettings(self) }
+    }
+    
     // MARK: - Initialization
     
     public init() {
@@ -40,6 +45,7 @@ public class BreatherSettings: ObservableObject, Codable {
         self.preBreakNotificationDuration = UserDefaultsManager.DefaultSettings.preBreakNotificationDuration
         self.selectedWallpaper = UserDefaultsManager.DefaultSettings.selectedWallpaper
         self.motivationalQuotes = UserDefaultsManager.DefaultSettings.motivationalQuotes
+        self.hasCompletedOnboarding = UserDefaultsManager.DefaultSettings.hasCompletedOnboarding
         
         // Try to load saved settings
         if let savedSettings = UserDefaultsManager.loadSettings() {
@@ -50,6 +56,7 @@ public class BreatherSettings: ObservableObject, Codable {
             self.preBreakNotificationDuration = savedSettings.preBreakNotificationDuration
             self.selectedWallpaper = savedSettings.selectedWallpaper
             self.motivationalQuotes = savedSettings.motivationalQuotes
+            self.hasCompletedOnboarding = savedSettings.hasCompletedOnboarding
         }
     }
     
@@ -63,6 +70,7 @@ public class BreatherSettings: ObservableObject, Codable {
         case preBreakNotificationDuration
         case selectedWallpaper
         case motivationalQuotes
+        case hasCompletedOnboarding
     }
     
     required public init(from decoder: Decoder) throws {
@@ -74,6 +82,7 @@ public class BreatherSettings: ObservableObject, Codable {
         preBreakNotificationDuration = try container.decode(TimeInterval.self, forKey: .preBreakNotificationDuration)
         selectedWallpaper = try container.decode(String.self, forKey: .selectedWallpaper)
         motivationalQuotes = try container.decode([String].self, forKey: .motivationalQuotes)
+        hasCompletedOnboarding = try container.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? false
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -85,6 +94,7 @@ public class BreatherSettings: ObservableObject, Codable {
         try container.encode(preBreakNotificationDuration, forKey: .preBreakNotificationDuration)
         try container.encode(selectedWallpaper, forKey: .selectedWallpaper)
         try container.encode(motivationalQuotes, forKey: .motivationalQuotes)
+        try container.encode(hasCompletedOnboarding, forKey: .hasCompletedOnboarding)
     }
     
     // MARK: - Public Methods
@@ -97,6 +107,7 @@ public class BreatherSettings: ObservableObject, Codable {
         preBreakNotificationDuration = UserDefaultsManager.DefaultSettings.preBreakNotificationDuration
         selectedWallpaper = UserDefaultsManager.DefaultSettings.selectedWallpaper
         motivationalQuotes = UserDefaultsManager.DefaultSettings.motivationalQuotes
+        hasCompletedOnboarding = UserDefaultsManager.DefaultSettings.hasCompletedOnboarding
     }
     
     public func resetMotivationalQuotes() {
