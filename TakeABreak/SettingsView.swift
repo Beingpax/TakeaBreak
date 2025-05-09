@@ -200,32 +200,6 @@ private struct GeneralSettingsContent: View {
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                             }
-                            
-                            Divider()
-                            
-                            Button(action: {
-                                settings.hasCompletedOnboarding = false
-                                // Create and show alert
-                                let alert = NSAlert()
-                                alert.messageText = "Onboarding Reset"
-                                alert.informativeText = "The onboarding will be shown next time you restart the app."
-                                alert.alertStyle = .informational
-                                alert.addButton(withTitle: "OK")
-                                alert.runModal()
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.counterclockwise.circle")
-                                        .foregroundColor(.blue)
-                                    Text("Reset Onboarding")
-                                        .foregroundColor(.primary)
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            
-                            Text("Show the welcome and setup screens again on next launch")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                
                         }.padding(.vertical, 4)
                     } header: {
                         Text("General")

@@ -66,6 +66,11 @@ class MenuBarManager: ObservableObject {
         triggerBreakItem.target = self
         debugMenu.addItem(triggerBreakItem)
         
+        // Add reset onboarding item
+        let resetOnboardingItem = NSMenuItem(title: "Reset Onboarding", action: #selector(debugResetOnboarding), keyEquivalent: "")
+        resetOnboardingItem.target = self
+        debugMenu.addItem(resetOnboardingItem)
+        
         menu.addItem(debugItem)
         #endif
         
@@ -145,6 +150,17 @@ class MenuBarManager: ObservableObject {
         
         // Trigger the break reminder directly
         timerManager.onBreakTime?()
+    }
+    
+    @objc private func debugResetOnboarding() {
+        settings.hasCompletedOnboarding = false
+        // Create and show alert
+        let alert = NSAlert()
+        alert.messageText = "Onboarding Reset"
+        alert.informativeText = "The onboarding will be shown next time you restart the app."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
     }
     #endif
     

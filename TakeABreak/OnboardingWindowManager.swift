@@ -17,6 +17,9 @@ class OnboardingWindowManager: NSObject {
         // Close any existing window first
         closeOnboardingWindow()
         
+        // Ensure dock icon is visible during onboarding
+        NSApp.setActivationPolicy(.regular)
+        
         // Create a new panel with no title bar
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 520),
@@ -69,6 +72,12 @@ class OnboardingWindowManager: NSObject {
     
     private func onboardingCompleted() {
         closeOnboardingWindow()
+        
+        // Hide dock icon after onboarding is complete
+        DispatchQueue.main.async {
+            NSApp.setActivationPolicy(.accessory)
+        }
+        
         onCompletionHandler?()
     }
 }
