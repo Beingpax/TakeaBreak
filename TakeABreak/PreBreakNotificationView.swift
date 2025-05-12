@@ -29,85 +29,103 @@ struct PreBreakNotificationView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Header with icon and text
-            HStack(spacing: 16) {
-                // Left side with icon and message
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 20) {
+                // Header with icon and text
                 HStack(spacing: 16) {
-                    // Icon Circle
-                    Circle()
-                        .fill(Color.primary.opacity(0.05))
-                        .frame(width: 42, height: 42)
-                        .overlay(
-                            Image(systemName: "bell.badge.fill")
-                                .font(.system(size: 18))
-                                .foregroundStyle(Color.primary)
-                        )
-                    
-                    // Encouraging message
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Time to Recharge")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(Color.primary)
+                    // Left side with icon and message
+                    HStack(spacing: 16) {
+                        // Icon Circle
+                        Circle()
+                            .fill(Color.primary.opacity(0.05))
+                            .frame(width: 42, height: 42)
+                            .overlay(
+                                Image(systemName: "bell.badge.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.primary)
+                            )
                         
-                        Text("Take a moment to refresh")
-                            .font(.system(size: 13))
+                        // Encouraging message
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Time to Recharge")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(Color.primary)
+                            
+                            Text("Take a moment to refresh")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Timer on the right
+                    HStack(spacing: 6) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 14))
                             .foregroundColor(.secondary)
+                        
+                        Text(formattedTime)
+                            .font(.system(size: 16, weight: .medium, design: .monospaced))
+                            .foregroundColor(Color.primary)
                     }
                 }
                 
-                Spacer()
-                
-                // Timer on the right
-                HStack(spacing: 6) {
-                    Image(systemName: "timer")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+                // Buttons in new order
+                HStack(spacing: 10) {
+                    AnimatedButton(
+                        action: {
+                            performExitAnimation {
+                                takeBreakNowAction()
+                            }
+                        },
+                        iconName: "cup.and.saucer.fill",
+                        text: "Take Break",
+                        type: .primary
+                    )
                     
-                    Text(formattedTime)
-                        .font(.system(size: 16, weight: .medium, design: .monospaced))
-                        .foregroundColor(Color.primary)
+                    AnimatedButton(
+                        action: {
+                            performExitAnimation {
+                                postponeAction()
+                            }
+                        },
+                        iconName: "zzz",
+                        text: "Snooze (5m)",
+                        type: .secondary
+                    )
+                    
+                    AnimatedButton(
+                        action: {
+                            performExitAnimation {
+                                skipAction()
+                            }
+                        },
+                        iconName: "arrow.counterclockwise",
+                        text: "Skip",
+                        type: .secondary
+                    )
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
             
-            // Buttons in new order
-            HStack(spacing: 10) {
-                AnimatedButton(
-                    action: {
-                        performExitAnimation {
-                            takeBreakNowAction()
-                        }
-                    },
-                    iconName: "cup.and.saucer.fill",
-                    text: "Take Break",
-                    type: .primary
-                )
-                
-                AnimatedButton(
-                    action: {
-                        performExitAnimation {
-                            postponeAction()
-                        }
-                    },
-                    iconName: "zzz",
-                    text: "Snooze (5m)",
-                    type: .secondary
-                )
-                
-                AnimatedButton(
-                    action: {
-                        performExitAnimation {
-                            skipAction()
-                        }
-                    },
-                    iconName: "arrow.counterclockwise",
-                    text: "Skip",
-                    type: .secondary
-                )
+            // Close button in the top-right corner
+            Button(action: {
+                performExitAnimation {
+                    skipAction() // Use skip action for the close button as well
+                }
+            }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.secondary)
+                    .padding(6)
+                    .background(Circle().fill(Color.gray.opacity(0.1)))
             }
+            .buttonStyle(PlainButtonStyle())
+            .padding(8)
+            .offset(y: -10) // Move slightly higher to avoid overlap
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
         .frame(width: 420, height: 140)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)

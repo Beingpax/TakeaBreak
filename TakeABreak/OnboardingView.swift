@@ -26,11 +26,11 @@ struct OnboardingView: View {
             _workDuration = State(initialValue: initialWorkOptions[1]) // Default to 25 minutes
         }
         
-        let initialBreakOptions = [30.0, 60.0, 120.0, 180.0]
+        let initialBreakOptions = [20.0, 30.0, 60.0, 120.0]
         if initialBreakOptions.contains(settings.autoDismissDuration) {
             _breakDuration = State(initialValue: settings.autoDismissDuration)
         } else {
-            _breakDuration = State(initialValue: initialBreakOptions[1]) // Default to 60 seconds
+            _breakDuration = State(initialValue: initialBreakOptions[1]) // Default to 30 seconds
         }
         
         let initialPreBreakOptions = [0.25, 0.5, 0.75, 1.0]
@@ -208,17 +208,17 @@ struct WelcomeView: View {
                 .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
             
             // Welcome text with better typography
-            Text("Welcome to TakeABreak")
+            Text("Welcome to Take A Break")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
             
             // Description with improved messaging
             VStack(spacing: 20) {
-                Text("Your Focus & Wellness Assistant")
+                Text("Your Focus & Wellness Companion")
                     .font(.headline)
                     .foregroundColor(.secondary)
                 
-                Text("TakeABreak helps you maintain productivity and wellbeing by reminding you to take regular breaks throughout your workday.")
+                Text("Take A Break helps you maintain productivity and wellbeing by reminding you to take regular breaks throughout your workday.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -292,10 +292,10 @@ struct BreakDurationView: View {
     @Binding var breakDuration: Double // in seconds
     
     let breakDurations: [(value: Double, label: String)] = [
+        (20, "20 sec"),
         (30, "30 sec"),
         (60, "60 sec"),
-        (120, "120 sec"),
-        (180, "180 sec")
+        (120, "120 sec")
     ]
     
     var body: some View {
