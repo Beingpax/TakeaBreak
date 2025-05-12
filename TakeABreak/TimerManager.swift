@@ -69,14 +69,8 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
             logger.notice("Idle detection initialized with \(self.settings.idleThresholdSeconds) second threshold")
         }
         
-        // Listen for settings changes
-        settingsCancellable = settings.objectWillChange
-            .sink { [weak self] _ in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    self.updateIdleDetectionFromSettings()
-                }
-            }
+        // No need to listen for settings changes here, 
+        // setupSettingsSubscription already handles calling updateIdleDetectionFromSettings
     }
     
     private func updateIdleDetectionFromSettings() {
@@ -108,10 +102,11 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
         
         // Always ensure we're using the current settings value
         breakInterval = settings.breakIntervalMinutes * 60
+        preBreakNotificationTime = settings.preBreakNotificationMinutes * 60
         
         if resetTime {
             timeUntilBreak = breakInterval
-            logger.notice("Timer started with duration: \(Int(breakInterval)) seconds")
+            logger.notice("Timer started with duration: \(Int(self.breakInterval)) seconds")
         }
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -187,6 +182,11 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
     
     func resetTimer() {
         resetBreakRelatedStates()
+        
+        // Ensure we're using updated values from settings
+        breakInterval = settings.breakIntervalMinutes * 60
+        preBreakNotificationTime = settings.preBreakNotificationMinutes * 60
+        
         if settings.isEnabled {
             startTimer(resetTime: true)
         } else {
@@ -280,7 +280,7 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
         preBreakNotificationTime = settings.preBreakNotificationMinutes * 60
         
         // Log the changes
-        logger.notice("Settings updated - Work duration: \(Int(breakInterval)) seconds, Pre-break notice: \(Int(preBreakNotificationTime)) seconds")
+        logger.notice("Settings updated - Work duration: \(Int(self.breakInterval)) seconds, Pre-break notice: \(Int(self.preBreakNotificationTime)) seconds")
         
         // If breaks are disabled, stop everything
         if !settings.isEnabled {
@@ -293,6 +293,8 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
         // If no active break or notification, restart timer with new values
         if !isReminderShowing && !isPreBreakNotificationShowing {
             stopTimer()
+            // Always reset time when settings change
+            timeUntilBreak = breakInterval
             startTimer(resetTime: true) // This will use the updated breakInterval
             logger.notice("Timer restarted with new settings")
         }
@@ -354,6 +356,10 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
         logger.notice("User became active, resetting break timer")
         isUserIdle = false
         
+        // Update intervals from current settings first
+        breakInterval = settings.breakIntervalMinutes * 60
+        preBreakNotificationTime = settings.preBreakNotificationMinutes * 60
+        
         // Reset timer instead of resuming from previous state
         if timerWasActiveBeforeIdle && !isReminderShowing {
             if settings.isEnabled {
@@ -363,7 +369,7 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
                     // Reset timer to full interval
                     timeUntilBreak = breakInterval
                     startTimer(resetTime: true)
-                    logger.notice("Reset timer to full interval: \(String(format: "%.1f", self.breakInterval)) seconds")
+                    logger.notice("Reset timer to full interval: \(Int(self.breakInterval)) seconds")
                 }
             }
         }
