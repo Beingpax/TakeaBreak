@@ -69,8 +69,6 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
             logger.notice("Idle detection initialized with \(self.settings.idleThresholdSeconds) second threshold")
         }
         
-        // No need to listen for settings changes here, 
-        // setupSettingsSubscription already handles calling updateIdleDetectionFromSettings
     }
     
     private func updateIdleDetectionFromSettings() {
@@ -275,28 +273,34 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
     }
     
     private func handleSettingsChange() {
+        logger.notice("handleSettingsChange called.") // Log entry
+        
         // Update internal values from settings
         breakInterval = settings.breakIntervalMinutes * 60
         preBreakNotificationTime = settings.preBreakNotificationMinutes * 60
         
-        // Log the changes
         logger.notice("Settings updated - Work duration: \(Int(self.breakInterval)) seconds, Pre-break notice: \(Int(self.preBreakNotificationTime)) seconds")
-        
+        logger.notice("Current state: isReminderShowing=\(self.isReminderShowing), isPreBreakNotificationShowing=\(self.isPreBreakNotificationShowing)") // Log state
+
         // If breaks are disabled, stop everything
         if !settings.isEnabled {
+            logger.notice("Breaks are disabled, stopping timer.") // Log disable path
             onHideNotifications?()
             resetBreakRelatedStates()
             stopTimer()
-            return
+            return 
         }
         
         // If no active break or notification, restart timer with new values
-        if !isReminderShowing && !isPreBreakNotificationShowing {
+        if !isReminderShowing && !isPreBreakNotificationShowing { 
+            logger.notice("No active break/notification, attempting to restart timer immediately.") // Log restart path
             stopTimer()
             // Always reset time when settings change
-            timeUntilBreak = breakInterval
+            timeUntilBreak = breakInterval 
             startTimer(resetTime: true) // This will use the updated breakInterval
-            logger.notice("Timer restarted with new settings")
+            logger.notice("Timer restart initiated with new settings.") // Log restart confirmation
+        } else {
+            logger.notice("Active break or notification present, timer will update after completion.") // Log deferred path
         }
     }
     
