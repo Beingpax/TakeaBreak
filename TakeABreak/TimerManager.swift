@@ -80,11 +80,12 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
     }
     
     private func updateIdleDetectionFromSettings() {
-        // Update idle detection settings when they change
+        // Always update detector with current settings
         if let detector = idleDetector {
+            // Update threshold regardless of enabled state
+            detector.updateIdleThreshold(settings.idleThresholdSeconds)
+            
             if settings.idleDetectionEnabled {
-                // Update the detector with new threshold
-                detector.updateIdleThreshold(settings.idleThresholdSeconds)
                 detector.startMonitoring()
                 logger.notice("Idle detection enabled with \(self.settings.idleThresholdSeconds) second threshold")
             } else {
@@ -105,8 +106,12 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
         
         if isReminderShowing || isPreBreakNotificationShowing { return }
         
+        // Always ensure we're using the current settings value
+        breakInterval = settings.breakIntervalMinutes * 60
+        
         if resetTime {
             timeUntilBreak = breakInterval
+            logger.notice("Timer started with duration: \(Int(breakInterval)) seconds")
         }
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -246,45 +251,51 @@ class TimerManager: ObservableObject, SystemEventsDelegate, IdleDetectorDelegate
     
     // MARK: - Settings Management
     private func setupSettingsSubscription() {
+        // Cancel any existing subscription
+        settingsCancellable?.cancel()
+        
+        // Create a new subscription to settings changes
         settingsCancellable = settings.objectWillChange
+            .receive(on: RunLoop.main)
             .sink { [weak self] _ in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    self.handleSettingsChange()
-                }
+                guard let self = self else { return }
+                
+                // Apply all settings changes immediately
+                self.handleSettingsChange()
+                self.updateIdleDetectionFromSettings()
+                
+                self.logger.notice("Settings changes were applied")
             }
+        
+        // Apply current settings immediately during setup
+        handleSettingsChange()
+        updateIdleDetectionFromSettings()
+        
+        logger.notice("Settings subscription initialized")
     }
     
     private func handleSettingsChange() {
-        let newBreakInterval = settings.breakIntervalMinutes * 60
-        let newPreBreakTime = settings.preBreakNotificationMinutes * 60
+        // Update internal values from settings
+        breakInterval = settings.breakIntervalMinutes * 60
+        preBreakNotificationTime = settings.preBreakNotificationMinutes * 60
         
-        if breakInterval != newBreakInterval {
-            breakInterval = newBreakInterval
-            if shouldRestartTimer {
-                stopTimer()
-                startTimer(resetTime: true)
-            }
-        }
+        // Log the changes
+        logger.notice("Settings updated - Work duration: \(Int(breakInterval)) seconds, Pre-break notice: \(Int(preBreakNotificationTime)) seconds")
         
-        if preBreakNotificationTime != newPreBreakTime {
-            preBreakNotificationTime = newPreBreakTime
-        }
-        
+        // If breaks are disabled, stop everything
         if !settings.isEnabled {
             onHideNotifications?()
             resetBreakRelatedStates()
             stopTimer()
-        } else {
-            // When breaks are enabled, always start the timer if there's no active break
-            if !isReminderShowing && !isPreBreakNotificationShowing {
-                startTimer(resetTime: true)
-            }
+            return
         }
-    }
-    
-    private var shouldRestartTimer: Bool {
-        settings.isEnabled && timer != nil && !isReminderShowing && !isPreBreakNotificationShowing
+        
+        // If no active break or notification, restart timer with new values
+        if !isReminderShowing && !isPreBreakNotificationShowing {
+            stopTimer()
+            startTimer(resetTime: true) // This will use the updated breakInterval
+            logger.notice("Timer restarted with new settings")
+        }
     }
     
     // MARK: - System Events Handling
