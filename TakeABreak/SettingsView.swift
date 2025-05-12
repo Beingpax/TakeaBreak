@@ -350,6 +350,42 @@ private struct TimingSettingsContent: View {
                     themeColor: .green
                 )
             }
+            
+            Section {
+                VStack(spacing: 16) {
+                    Toggle(isOn: $settings.idleDetectionEnabled) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Enable Idle Detection")
+                                .font(.system(size: 13, weight: .medium))
+                            Text("Pause and reset timer when you're away from your computer")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .toggleStyle(.switch)
+                    
+                    Divider()
+                    
+                    EnhancedNumericSetting(
+                        label: "Idle Threshold",
+                        description: "Time without activity before considering you idle",
+                        value: $settings.idleThresholdSeconds,
+                        formatter: secondsFormatter,
+                        unit: "sec",
+                        range: 30...300,
+                        step: 30
+                    )
+                    .disabled(!settings.idleDetectionEnabled)
+                    .opacity(settings.idleDetectionEnabled ? 1.0 : 0.5)
+                }.padding(.vertical, 4)
+            } header: {
+                DetailedSectionHeader(
+                    title: "Idle Detection",
+                    subtitle: "Automatically pause & reset timer when you're away",
+                    systemName: "person.fill.questionmark",
+                    themeColor: .blue
+                )
+            }
         }
         .formStyle(.grouped)
     }

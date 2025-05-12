@@ -14,6 +14,10 @@ struct UserDefaultsManager {
         static let autoDismissDuration: TimeInterval = 30
         static let preBreakNotificationDuration: TimeInterval = 10
         
+        // Idle detection settings
+        static let idleDetectionEnabled: Bool = true
+        static let idleThresholdSeconds: TimeInterval = 120 // 2 minutes
+        
         // UI settings
         static let selectedWallpaper: String = "gradient"
         static let motivationalQuotes = [

@@ -21,6 +21,14 @@ public class TakeABreakSettings: ObservableObject, Codable {
         didSet { UserDefaultsManager.saveSettings(self) }
     }
     
+    // Idle detection settings
+    @Published public var idleDetectionEnabled: Bool {
+        didSet { UserDefaultsManager.saveSettings(self) }
+    }
+    @Published public var idleThresholdSeconds: TimeInterval {
+        didSet { UserDefaultsManager.saveSettings(self) }
+    }
+    
     // UI settings
     @Published public var selectedWallpaper: String {
         didSet { UserDefaultsManager.saveSettings(self) }
@@ -43,6 +51,8 @@ public class TakeABreakSettings: ObservableObject, Codable {
         self.isEnabled = UserDefaultsManager.DefaultSettings.isEnabled
         self.autoDismissDuration = UserDefaultsManager.DefaultSettings.autoDismissDuration
         self.preBreakNotificationDuration = UserDefaultsManager.DefaultSettings.preBreakNotificationDuration
+        self.idleDetectionEnabled = UserDefaultsManager.DefaultSettings.idleDetectionEnabled
+        self.idleThresholdSeconds = UserDefaultsManager.DefaultSettings.idleThresholdSeconds
         self.selectedWallpaper = UserDefaultsManager.DefaultSettings.selectedWallpaper
         self.motivationalQuotes = UserDefaultsManager.DefaultSettings.motivationalQuotes
         self.hasCompletedOnboarding = UserDefaultsManager.DefaultSettings.hasCompletedOnboarding
@@ -54,6 +64,8 @@ public class TakeABreakSettings: ObservableObject, Codable {
             self.isEnabled = savedSettings.isEnabled
             self.autoDismissDuration = savedSettings.autoDismissDuration
             self.preBreakNotificationDuration = savedSettings.preBreakNotificationDuration
+            self.idleDetectionEnabled = savedSettings.idleDetectionEnabled
+            self.idleThresholdSeconds = savedSettings.idleThresholdSeconds
             self.selectedWallpaper = savedSettings.selectedWallpaper
             self.motivationalQuotes = savedSettings.motivationalQuotes
             self.hasCompletedOnboarding = savedSettings.hasCompletedOnboarding
@@ -68,6 +80,8 @@ public class TakeABreakSettings: ObservableObject, Codable {
         case isEnabled
         case autoDismissDuration
         case preBreakNotificationDuration
+        case idleDetectionEnabled
+        case idleThresholdSeconds
         case selectedWallpaper
         case motivationalQuotes
         case hasCompletedOnboarding
@@ -80,6 +94,8 @@ public class TakeABreakSettings: ObservableObject, Codable {
         isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
         autoDismissDuration = try container.decode(TimeInterval.self, forKey: .autoDismissDuration)
         preBreakNotificationDuration = try container.decode(TimeInterval.self, forKey: .preBreakNotificationDuration)
+        idleDetectionEnabled = try container.decodeIfPresent(Bool.self, forKey: .idleDetectionEnabled) ?? true
+        idleThresholdSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .idleThresholdSeconds) ?? 120
         selectedWallpaper = try container.decode(String.self, forKey: .selectedWallpaper)
         motivationalQuotes = try container.decode([String].self, forKey: .motivationalQuotes)
         hasCompletedOnboarding = try container.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? false
@@ -92,6 +108,8 @@ public class TakeABreakSettings: ObservableObject, Codable {
         try container.encode(isEnabled, forKey: .isEnabled)
         try container.encode(autoDismissDuration, forKey: .autoDismissDuration)
         try container.encode(preBreakNotificationDuration, forKey: .preBreakNotificationDuration)
+        try container.encode(idleDetectionEnabled, forKey: .idleDetectionEnabled)
+        try container.encode(idleThresholdSeconds, forKey: .idleThresholdSeconds)
         try container.encode(selectedWallpaper, forKey: .selectedWallpaper)
         try container.encode(motivationalQuotes, forKey: .motivationalQuotes)
         try container.encode(hasCompletedOnboarding, forKey: .hasCompletedOnboarding)
@@ -105,6 +123,8 @@ public class TakeABreakSettings: ObservableObject, Codable {
         isEnabled = UserDefaultsManager.DefaultSettings.isEnabled
         autoDismissDuration = UserDefaultsManager.DefaultSettings.autoDismissDuration
         preBreakNotificationDuration = UserDefaultsManager.DefaultSettings.preBreakNotificationDuration
+        idleDetectionEnabled = UserDefaultsManager.DefaultSettings.idleDetectionEnabled
+        idleThresholdSeconds = UserDefaultsManager.DefaultSettings.idleThresholdSeconds
         selectedWallpaper = UserDefaultsManager.DefaultSettings.selectedWallpaper
         motivationalQuotes = UserDefaultsManager.DefaultSettings.motivationalQuotes
         hasCompletedOnboarding = UserDefaultsManager.DefaultSettings.hasCompletedOnboarding
