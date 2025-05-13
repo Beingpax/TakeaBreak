@@ -1,32 +1,26 @@
-//
-//  TakeABreakApp.swift
-//  Take a Break
-//
-//  Created by Prakash Joshi on 22/04/2025.
-//
-
 import SwiftUI
 import SwiftData
+import AppKit
 
 @main
 struct TakeABreakApp: App {
-    // Use the app delegate
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
-    // No longer need to initialize managers here
+    init() {
+        // Ensure we're on the main thread and NSApp is available
+        DispatchQueue.main.async {
+            NSApp.setActivationPolicy(.accessory)
+        }
+    }
     
     var body: some Scene {
-        // The Settings scene provides the standard macOS settings window
-        // accessible via Cmd+,
         Settings {
-            // Ensure appDelegate.takeABreakSettings is not nil before creating the view
-            if let settings = appDelegate.takeABreakSettings {
-                SettingsView(settings: settings)
-            } else {
-                // Provide a fallback view or handle the nil case appropriately
-                Text("Settings not available.")
-                    .frame(width: 300, height: 200)
-            }
+            // Use direct access to settings to avoid optional unwrapping
+            SettingsView(settings: appDelegate.takeABreakSettings ?? TakeABreakSettings())
+        }
+        .windowResizability(.contentSize)
+        .commands {
+            CommandGroup(replacing: .newItem) {}
         }
     }
 }

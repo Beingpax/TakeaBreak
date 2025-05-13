@@ -1,7 +1,6 @@
 import SwiftUI
 import LaunchAtLogin
 
-// MARK: - Wallpaper Data Structures
 struct WallpaperOption: Identifiable, Hashable {
     let id: String
     let name: String
@@ -14,12 +13,10 @@ let availableWallpapers: [WallpaperOption] = [
     WallpaperOption(id: "sunset", name: "Peaceful Sunset", previewImageName: "sunset")
 ]
 
-// Enum for TabView tags
 enum SettingsTabTag {
     case general, customization, rules, more
 }
 
-// MARK: - Main Settings View
 public struct SettingsView: View {
     @ObservedObject var settings: TakeABreakSettings
     @State private var selectedTab: SettingsTabTag = .general
@@ -104,17 +101,15 @@ public struct SettingsView: View {
     }
 }
 
-// MARK: - Detailed Icon & Header Components
 struct DetailedIcon: View {
     let systemName: String
     let themeColor: Color
-    var size: CGFloat = 24 // Sidebar icon size
+    var size: CGFloat = 24
     var iconFontSize: CGFloat = 12
     var cornerRadius: CGFloat = 7
 
     var body: some View {
         ZStack {
-            // Base with gradient and outer shadow
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(
                     LinearGradient(
@@ -127,7 +122,6 @@ struct DetailedIcon: View {
                 .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
 
 
-            // Inner Bevel Effect
             RoundedRectangle(cornerRadius: cornerRadius - 1)
                 .strokeBorder(
                     LinearGradient(
@@ -137,13 +131,12 @@ struct DetailedIcon: View {
                     ),
                     lineWidth: 1.5
                 )
-                .padding(0.5) // To ensure stroke is inside
+                .padding(0.5)
 
-            // Symbol
             Image(systemName: systemName)
                 .font(.system(size: iconFontSize, weight: .bold))
                 .foregroundColor(.white.opacity(0.9))
-                .shadow(color: .black.opacity(0.25), radius: 1.5, x: 0, y: 0.75) // Symbol shadow for pop
+                .shadow(color: .black.opacity(0.25), radius: 1.5, x: 0, y: 0.75)
         }
         .frame(width: size, height: size)
     }
@@ -151,9 +144,16 @@ struct DetailedIcon: View {
 
 struct DetailedSectionHeader: View {
     let title: String
-    let subtitle: String
+    let subtitle: String?
     let systemName: String
     let themeColor: Color
+
+    init(title: String, subtitle: String? = nil, systemName: String, themeColor: Color) {
+        self.title = title
+        self.subtitle = subtitle
+        self.systemName = systemName
+        self.themeColor = themeColor
+    }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -162,24 +162,24 @@ struct DetailedSectionHeader: View {
                 Text(title)
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.primary)
-                Text(subtitle)
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(.secondary)
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(.secondary)
+                }
             }
             Spacer()
         }
         .padding(.vertical, 12)
-        .padding(.leading, 4) // Slight indent for header
+        .padding(.leading, 4)
     }
 }
 
-// MARK: - Content Views
 private struct GeneralSettingsContent: View {
     @ObservedObject var settings: TakeABreakSettings
     var body: some View {
         ScrollView {
             VStack(spacing: 8) {
-                // First Form: General Settings
                 Form {
                     Section {
                         VStack(spacing: 16) {
@@ -202,22 +202,21 @@ private struct GeneralSettingsContent: View {
                             }
                         }.padding(.vertical, 4)
                     } header: {
-                        Text("General")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                            .padding(.bottom, 4)
+                        DetailedSectionHeader(
+                            title: "General",
+                            subtitle: "Configure app behavior",
+                            systemName: "gearshape.fill",
+                            themeColor: .blue
+                        )
                     }
                 }
                 .formStyle(.grouped)
                 
-                // Second Form: Check out MyApps
                 Form {
                     Section {
                         Link(destination: URL(string: "https://tryvoiceink.com")!) {
                             HStack(spacing: 15) {
-                                // Custom DetailedIcon-style container for voiceink
                                 ZStack {
-                                    // Base with gradient and outer shadow
                                     RoundedRectangle(cornerRadius: 10)
                                         .fill(
                                             LinearGradient(
@@ -229,7 +228,6 @@ private struct GeneralSettingsContent: View {
                                         .shadow(color: Color.purple.opacity(0.3), radius: 3, x: 1, y: 2)
                                         .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
                                     
-                                    // Inner Bevel Effect
                                     RoundedRectangle(cornerRadius: 9)
                                         .strokeBorder(
                                             LinearGradient(
@@ -241,7 +239,6 @@ private struct GeneralSettingsContent: View {
                                         )
                                         .padding(0.5)
                                     
-                                    // App Icon
                                     Image("voiceink")
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
@@ -274,22 +271,7 @@ struct CustomizationView: View {
     
     var body: some View {
         Form {
-            // Main title area for the "Customization" screen
-            DetailedSectionHeader(
-                title: "Customization",
-                subtitle: "Personalize your break experience",
-                systemName: "paintbrush.fill",
-                themeColor: .purple
-            )
-            .listRowInsets(EdgeInsets(top: 0, leading: -10, bottom: 10, trailing: 0))
-
-            // Section 1: Reminder Background
-            Section(
-                header: Text("Reminder Background")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .textCase(nil)
-            ) {
+            Section {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 20) {
                         ForEach(availableWallpapers) { option in
@@ -307,9 +289,15 @@ struct CustomizationView: View {
                     .padding(.horizontal)
                 }
                 .frame(height: 170)
+            } header: {
+                DetailedSectionHeader(
+                    title: "Reminder Background", 
+                    subtitle: "Choose your break screen background",
+                    systemName: "photo.fill",
+                    themeColor: .blue
+                )
             }
             
-            // Section 2: Motivational Quotes - Now using MotivationalQuotesSectionView
             MotivationalQuotesSectionView(settings: settings)
         }
         .formStyle(.grouped)
@@ -433,7 +421,6 @@ private struct NotificationSettingsContent: View {
     }
 }
 
-// Enhanced helper views
 struct EnhancedNumericSetting: View {
     let label: String
     let description: String
@@ -471,23 +458,6 @@ struct EnhancedNumericSetting: View {
             }
         }
         .padding(.vertical, 4)
-    }
-}
-
-// MARK: - Helper Views
-private struct SectionsHeader: View {
-    let title: String
-    let systemImage: String
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: systemImage)
-                .font(.title3)
-                .foregroundColor(.accentColor)
-            Text(title)
-                .font(.title3)
-                .fontWeight(.medium)
-        }
-        .padding(.vertical, 8)
     }
 }
 
@@ -561,52 +531,41 @@ private struct NumericSetting: View {
     }
 }
 
-// MARK: - About Content View
 private struct AboutSettingsContent: View {
     var body: some View {
-        VStack(spacing: 20) {
-            Image(nsImage: NSApplication.shared.applicationIconImage)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 128, height: 128)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .shadow(radius: 10)
-
-            VStack(spacing: 8) {
-                Text("Take A Break") // App Name (can be dynamic if needed)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-
-                if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
-                   let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
-                    Text("Version \(version) (Build \(build))")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
+        Form {
+            Section {
+                VStack(spacing: 20) {
+                    Image(nsImage: NSApplication.shared.applicationIconImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 128, height: 128)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .shadow(radius: 10)
+                    
+                    VStack(spacing: 8) {
+                        Text("Take A Break")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        
+                        if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+                           let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
+                            Text("Version \(version) (Build \(build))")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Text("Take a Break reminds you to take regular breaks during your work sessions. Taking short breaks helps maintain good back and eye health, keeping you productive and feeling great!")
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 40)
                 }
+                .padding(.top, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(NSColor.windowBackgroundColor))
             }
-
-            Text("This application reminds you to take regular breaks during your work sessions. Taking short breaks helps maintain good back and eye health, keeping you productive and feeling great!")
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.primary)
-                .padding(.horizontal, 40)
-            
-            Spacer() // Pushes content to the top
-
         }
-        .padding(.top, 40) // Add some padding at the top
-        .frame(maxWidth: .infinity, maxHeight: .infinity) // Make it fill the space
-        .background(Color(NSColor.windowBackgroundColor)) // Optional: Set a background color
-    }
-}
-
-// MARK: - Preview
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        let previewSettings = TakeABreakSettings()
-        SettingsView(settings: previewSettings)
-            .preferredColorScheme(.dark) 
-        SettingsView(settings: previewSettings)
-            .preferredColorScheme(.light)
     }
 }

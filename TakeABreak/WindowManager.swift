@@ -77,7 +77,6 @@ class WindowManager: ObservableObject {
         
         timerManager.startBreakCountdown(duration: settings.autoDismissDuration)
         
-        // Select a single motivational quote for all screens
         let selectedQuote = !settings.motivationalQuotes.isEmpty 
             ? settings.motivationalQuotes.randomElement()! 
             : "Enjoy your break!"
@@ -102,7 +101,7 @@ class WindowManager: ObservableObject {
                 },
                 settings: settings,
                 timerManager: timerManager,
-                motivationalQuote: selectedQuote  // Pass the selected quote
+                motivationalQuote: selectedQuote
             )
             
             let hostingView = NSHostingView(rootView: contentView)

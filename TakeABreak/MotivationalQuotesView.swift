@@ -1,6 +1,5 @@
 import SwiftUI
 
-// MARK: - Motivational Quotes Section
 struct MotivationalQuotesSectionView: View {
     @ObservedObject var settings: TakeABreakSettings
     @State private var newMotivationalQuote: String = ""
@@ -11,11 +10,6 @@ struct MotivationalQuotesSectionView: View {
         Section {
             VStack(spacing: 16) {
                 HStack {
-                    Text("Motivational Quotes")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .textCase(nil)
-                    
                     Spacer()
                     
                     Button {
@@ -81,6 +75,13 @@ struct MotivationalQuotesSectionView: View {
                     .frame(maxHeight: 250)
                 }
             }
+        } header: {
+            DetailedSectionHeader(
+                title: "Motivational Quotes",
+                subtitle: "Personalize with your favorite quotes",
+                systemName: "quote.bubble.fill",
+                themeColor: .purple
+            )
         }
         .alert("Reset Motivational Quotes", isPresented: $showResetAlert) {
             Button("Cancel", role: .cancel) { }
@@ -121,7 +122,6 @@ struct MotivationalQuotesSectionView: View {
     }
 }
 
-// MARK: - Add Quote Sheet View
 struct AddQuoteSheetView: View {
     @Binding var newMotivationalQuote: String
     var onSave: (String) -> Void
@@ -132,7 +132,6 @@ struct AddQuoteSheetView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 Text("New Motivational Quote")
                     .font(.title3.weight(.medium))
@@ -142,7 +141,6 @@ struct AddQuoteSheetView: View {
 
             Divider()
             
-            // Content Area
             VStack(alignment: .leading, spacing: 16) {
                 Text("Enter an inspiring message that will be shown during breaks:")
                     .font(.callout)
@@ -174,7 +172,6 @@ struct AddQuoteSheetView: View {
 
             Divider()
             
-            // Footer
             HStack(spacing: 12) {
                 Spacer()
                 Button("Cancel", role: .cancel) {
@@ -199,4 +196,4 @@ struct AddQuoteSheetView: View {
         .frame(width: 400, height: 350)
         .background(.ultraThickMaterial)
     }
-} 
+}
