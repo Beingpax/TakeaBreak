@@ -95,8 +95,8 @@ class MenuBarManager: ObservableObject {
         
         let contentView = SettingsView(settings: settings)
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 350, height: 300),
-            styleMask: [.titled, .closable],
+            contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
+            styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
@@ -112,6 +112,7 @@ class MenuBarManager: ObservableObject {
         window.center()
         window.contentView = NSHostingView(rootView: contentView)
         window.isReleasedWhenClosed = false
+        window.setContentSize(NSSize(width: 800, height: 500))
         
         self.settingsWindow = window
         window.makeKeyAndOrderFront(nil)

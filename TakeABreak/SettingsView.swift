@@ -92,11 +92,11 @@ public struct SettingsView: View {
                 }
             }
             .listStyle(SidebarListStyle())
-            .frame(minWidth: 200, maxWidth: 250)
+            .frame(minWidth: 220, maxWidth: 280)
             
             GeneralSettingsContent(settings: settings)
         }
-        .frame(minWidth: 700, minHeight: 400)
+        .frame(minWidth: 800, minHeight: 500)
         .navigationTitle("")
     }
 }
@@ -318,7 +318,7 @@ private struct TimingSettingsContent: View {
                     value: $settings.breakIntervalMinutes,
                     formatter: minutesFormatter,
                     unit: "min",
-                    range: 0.5...60,
+                    range: 5...60,
                     step: 5.0
                 )
                 EnhancedNumericSetting(
