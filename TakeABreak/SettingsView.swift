@@ -1,5 +1,6 @@
 import SwiftUI
 import LaunchAtLogin
+import Sparkle
 
 struct WallpaperOption: Identifiable, Hashable {
     let id: String
@@ -39,8 +40,9 @@ public struct SettingsView: View {
         return formatter
     }()
 
-    public init(settings: TakeABreakSettings) {
+    public init(settings: TakeABreakSettings, updater: SPUUpdater? = nil) {
         self.settings = settings
+        // updater is not used directly in SettingsView as Sparkle manages its own preferences
     }
 
     public var body: some View {

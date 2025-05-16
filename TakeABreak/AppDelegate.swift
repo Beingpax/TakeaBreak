@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Combine
+import Sparkle
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
@@ -11,13 +12,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuRefreshTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private var onboardingWindowManager: OnboardingWindowManager?
+    private var updaterController: SPUStandardUpdaterController?
 
     var takeABreakSettings: TakeABreakSettings? {
         return settings
     }
+    
+    var sparkleUpdater: SPUUpdater? {
+        return updaterController?.updater
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        
+        // Initialize Sparkle updater
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
         
         let settingsInstance = self.settings
         
@@ -30,7 +39,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let menuBarManagerInstance = MenuBarManager(
             timerManager: timerManagerInstance,
-            settings: settingsInstance
+            settings: settingsInstance,
+            updater: updaterController?.updater
         )
         
         self.timerManager = timerManagerInstance

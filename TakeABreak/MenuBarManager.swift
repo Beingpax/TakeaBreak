@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Sparkle
 
 class MenuBarManager: ObservableObject {
     private var statusItem: NSStatusItem?
@@ -7,10 +8,12 @@ class MenuBarManager: ObservableObject {
     private var settings: TakeABreakSettings
     private var settingsWindow: NSWindow?
     private var settingsWindowDelegate: SettingsWindowDelegate?
+    private var updater: SPUUpdater?
     
-    init(timerManager: TimerManager, settings: TakeABreakSettings) {
+    init(timerManager: TimerManager, settings: TakeABreakSettings, updater: SPUUpdater?) {
         self.timerManager = timerManager
         self.settings = settings
+        self.updater = updater
         
         setupStatusBar()
     }
@@ -45,6 +48,10 @@ class MenuBarManager: ObservableObject {
         let settingsItem = NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
+        
+        let checkForUpdatesItem = NSMenuItem(title: "Check for Updates...", action: #selector(checkForUpdates), keyEquivalent: "")
+        checkForUpdatesItem.target = self
+        menu.addItem(checkForUpdatesItem)
         
         #if DEBUG
         menu.addItem(NSMenuItem.separator())
@@ -86,6 +93,10 @@ class MenuBarManager: ObservableObject {
         updateMenu()
     }
     
+    @objc private func checkForUpdates() {
+        updater?.checkForUpdates()
+    }
+    
     @objc private func openSettings() {
         if let existingWindow = settingsWindow {
             existingWindow.makeKeyAndOrderFront(nil)
@@ -93,7 +104,7 @@ class MenuBarManager: ObservableObject {
             return
         }
         
-        let contentView = SettingsView(settings: settings)
+        let contentView = SettingsView(settings: settings, updater: updater)
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
             styleMask: [.titled, .closable, .resizable],

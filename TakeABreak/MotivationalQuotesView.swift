@@ -8,29 +8,7 @@ struct MotivationalQuotesSectionView: View {
 
     var body: some View {
         Section {
-            VStack(spacing: 16) {
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                        newMotivationalQuote = ""
-                        isShowingAddQuoteSheet = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.borderless)
-                    .help("Add new quote")
-                    
-                    Button(action: { showResetAlert = true }) {
-                        Image(systemName: "arrow.counterclockwise")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.borderless)
-                    .help("Reset to default quotes")
-                }
-                .padding(.bottom, 4)
-                
+            VStack(spacing: 16) {                
                 if settings.motivationalQuotes.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "quote.bubble")
@@ -74,6 +52,29 @@ struct MotivationalQuotesSectionView: View {
                     }
                     .frame(maxHeight: 250)
                 }
+                
+                // Button row at the bottom
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        newMotivationalQuote = ""
+                        isShowingAddQuoteSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Add new quote")
+                    
+                    Button(action: { showResetAlert = true }) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Reset to default quotes")
+                }
+                .padding(.top, 4)
             }
         } header: {
             DetailedSectionHeader(
