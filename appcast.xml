@@ -24,6 +24,6 @@
                        type="application/octet-stream" 
                        sparkle:edSignature="abc123=" />
             <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
-        </item>
+        </itm>
     </channel>
 </rss> 
