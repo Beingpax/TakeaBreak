@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E12FBE242DD75F10001AF22E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E12FBE232DD75F10001AF22E /* Sparkle */; };
 		E17986552DC9F19600FE3D39 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E17986542DC9F19600FE3D39 /* LaunchAtLogin */; };
 /* End PBXBuildFile section */
 
@@ -33,9 +34,22 @@
 		E1F4E16A2DB7465B00531644 /* TakeABreakUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TakeABreakUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E12FBF0E2DD75F8D001AF22E /* Exceptions for "TakeABreak" folder in "TakeABreak" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E1F4E14F2DB7465900531644 /* TakeABreak */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E1F4E1522DB7465900531644 /* TakeABreak */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E12FBF0E2DD75F8D001AF22E /* Exceptions for "TakeABreak" folder in "TakeABreak" target */,
+			);
 			path = TakeABreak;
 			sourceTree = "<group>";
 		};
@@ -57,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E17986552DC9F19600FE3D39 /* LaunchAtLogin in Frameworks */,
+				E12FBE242DD75F10001AF22E /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +133,7 @@
 			name = TakeABreak;
 			packageProductDependencies = (
 				E17986542DC9F19600FE3D39 /* LaunchAtLogin */,
+				E12FBE232DD75F10001AF22E /* Sparkle */,
 			);
 			productName = TakeABreak;
 			productReference = E1F4E1502DB7465900531644 /* TakeABreak.app */;
@@ -203,6 +219,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				E17986532DC9F19600FE3D39 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+				E12FBE222DD75F10001AF22E /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E1F4E1512DB7465900531644 /* Products */;
@@ -407,18 +424,20 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 0.2;
 				DEVELOPMENT_TEAM = V6J6A3VWY2;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TakeABreak/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Take a Break";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.takeabreak;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -436,18 +455,20 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 0.2;
 				DEVELOPMENT_TEAM = V6J6A3VWY2;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TakeABreak/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Take a Break";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.takeabreak;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -566,6 +587,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		E12FBE222DD75F10001AF22E /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.0;
+			};
+		};
 		E17986532DC9F19600FE3D39 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
@@ -577,6 +606,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E12FBE232DD75F10001AF22E /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E12FBE222DD75F10001AF22E /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
 		E17986542DC9F19600FE3D39 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E17986532DC9F19600FE3D39 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;

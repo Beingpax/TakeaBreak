@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>TakeaBreak Updates</title>
+        <description>Most recent changes with links to updates.</description>
+        <language>en</language>
+        <item>
+            <title>Version 1.0.0</title>
+            <description>
+                <![CDATA[
+                    <h2>New Features</h2>
+                    <ul>
+                        <li>Initial release</li>
+                        <li>Break reminders</li>
+                        <li>Customizable break intervals</li>
+                    </ul>
+                ]]>
+            </description>
+            <pubDate>Mon, 01 Jan 2024 12:00:00 +0000</pubDate>
+            <enclosure url="https://example.com/downloads/TakeaBreak-1.0.0.zip" 
+                       sparkle:version="1.0.0" 
+                       sparkle:shortVersionString="1.0.0" 
+                       length="12345678" 
+                       type="application/octet-stream" 
+                       sparkle:edSignature="abc123=" />
+            <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
+        </item>
+    </channel>
+</rss> 
