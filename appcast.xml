@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>TakeABreak</title>
+        <item>
+            <title>0.2</title>
+            <pubDate>Fri, 16 May 2025 19:32:02 +0545</pubDate>
+            <sparkle:version>0.2</sparkle:version>
+            <sparkle:shortVersionString>0.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/Beingpax/TakeaBreak/releases/download/v0.2/Take.a.Break.dmg" length="5235967" type="application/octet-stream" sparkle:edSignature="v+OAa9kGBcRbkK8UADgfDMMUo8vUF01kjM66v9U8eRoCL0Zgq5neUYWr5iHsQ24P5MyuKW6cx2xTwqAzr/EqDQ=="/>
+        </item>
+    </channel>
+</rss>
