@@ -1,14 +1,14 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
-        <title>TakeABreak</title>
+        <title>Take a Break</title>
         <item>
             <title>0.21</title>
-            <pubDate>Mon, 26 May 2025 11:53:53 +0545</pubDate>
-            <sparkle:version>23</sparkle:version>
+            <pubDate>Mon, 26 May 2025 12:17:42 +0545</pubDate>
+            <sparkle:version>22</sparkle:version>
             <sparkle:shortVersionString>0.21</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/Beingpax/TakeaBreak/releases/download/v0.21/Take.a.Break.dmg" length="5260252" type="application/octet-stream" sparkle:edSignature="RXj51/fK9W4rZEuWQLR7GHc4T8c4gjOQXjBrVJrhziudBjSr06WTlxutxJEPhrzPB+NeeI7N6/2WcwG7lq45Dw=="/>
+            <enclosure url="https://beingpax.github.io/TakeaBreak/Take%20a%20Break.dmg" length="5260721" type="application/octet-stream" sparkle:edSignature="hFypZN6O7ar2mDvd+DV0g1IZhVl3R+xgX5rPCbAz/yUcjSWB+fGkFL2sH21/aI+KSC6OWAoMnP0zIMnrfuIpBQ=="/>
         </item>
     </channel>
 </rss>
