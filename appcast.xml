@@ -3,12 +3,12 @@
     <channel>
         <title>TakeABreak</title>
         <item>
-            <title>0.2</title>
-            <pubDate>Fri, 16 May 2025 19:32:02 +0545</pubDate>
-            <sparkle:version>0.2</sparkle:version>
-            <sparkle:shortVersionString>0.2</sparkle:shortVersionString>
+            <title>0.21</title>
+            <pubDate>Mon, 26 May 2025 11:34:53 +0545</pubDate>
+            <sparkle:version>21</sparkle:version>
+            <sparkle:shortVersionString>0.21</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/Beingpax/TakeaBreak/releases/download/v0.2/Take.a.Break.dmg" length="5235967" type="application/octet-stream" sparkle:edSignature="v+OAa9kGBcRbkK8UADgfDMMUo8vUF01kjM66v9U8eRoCL0Zgq5neUYWr5iHsQ24P5MyuKW6cx2xTwqAzr/EqDQ=="/>
+            <enclosure url="https://github.com/Beingpax/TakeaBreak/releases/download/v0.21/Take.a.Break.dmg" length="5260540" type="application/octet-stream" sparkle:edSignature="V5QhWCC94LFAn1m6SZfT+y4uZPGeTDfquSO2YiBcsug3tu/qvCFGulZvzsLusH38bJS34iEgfsbasKPVb3a4Dg=="/>
         </item>
     </channel>
 </rss>
