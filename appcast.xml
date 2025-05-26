@@ -8,7 +8,7 @@
             <sparkle:version>23</sparkle:version>
             <sparkle:shortVersionString>0.21</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://beingpax.github.io/TakeaBreak/Take%20a%20Break.dmg" length="5260721" type="application/octet-stream" sparkle:edSignature="hFypZN6O7ar2mDvd+DV0g1IZhVl3R+xgX5rPCbAz/yUcjSWB+fGkFL2sH21/aI+KSC6OWAoMnP0zIMnrfuIpBQ=="/>
+            <enclosure url="https://github.com/Beingpax/TakeaBreak/releases/download/v0.21/Take.a.Break.dmg" length="5260721" type="application/octet-stream" sparkle:edSignature="hFypZN6O7ar2mDvd+DV0g1IZhVl3R+xgX5rPCbAz/yUcjSWB+fGkFL2sH21/aI+KSC6OWAoMnP0zIMnrfuIpBQ=="/>
         </item>
     </channel>
 </rss>
