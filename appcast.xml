@@ -3,12 +3,19 @@
     <channel>
         <title>Take a Break</title>
         <item>
-            <title>0.21</title>
-            <pubDate>Mon, 26 May 2025 12:17:42 +0545</pubDate>
-            <sparkle:version>22</sparkle:version>
-            <sparkle:shortVersionString>0.21</sparkle:shortVersionString>
+            <title>0.23</title>
+            <pubDate>Thu, 12 Jun 2025 12:17:42 +0545</pubDate>
+            <sparkle:version>23</sparkle:version>
+            <sparkle:shortVersionString>0.23</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/Beingpax/TakeaBreak/releases/download/v0.21/Take.a.Break.dmg" length="5260721" type="application/octet-stream" sparkle:edSignature="hFypZN6O7ar2mDvd+DV0g1IZhVl3R+xgX5rPCbAz/yUcjSWB+fGkFL2sH21/aI+KSC6OWAoMnP0zIMnrfuIpBQ=="/>
+            <description><![CDATA[
+                <h3>🎉 What's New in Version 0.23</h3>
+                <ul>
+                    <li>🛠️ Support for minor fixes and improvements</li>
+                    <li>💰 Early access pricing</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/Beingpax/TakeaBreak/releases/download/v0.23/Take.a.Break.dmg" length="5410812" type="application/octet-stream" sparkle:edSignature="MI/QYy0c+tqN7EkTLBqpxU0Q4x/9HaYVWLTq/XaEWGa+AWwtyXJvqJ6u+5R99NYY6JcUTwU5twj7GSY4KfNxCw=="/>
         </item>
     </channel>
 </rss>
